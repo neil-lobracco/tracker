@@ -26,3 +26,17 @@ export function createPlayer(player) {
 			err => console.log(err));
 	}
 }
+
+export function createMatch(match) {
+	return function(dispatch) {
+		return fetch("/api/matches", {
+			method: 'POST',
+			headers : {"Content-Type": "application/json; charset=utf-8", },
+			body: JSON.stringify(matches),
+		})
+		.then(response =>  { return response.json() },
+			err => console.log(err))
+		.then(json => dispatch(fetchPlayers()),
+			err => console.log(err));
+	}
+}

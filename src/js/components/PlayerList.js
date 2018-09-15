@@ -4,13 +4,17 @@ const mapStateToProps = state => {
   return { players: state.players };
 };
 const ConnectedList = ({ players }) => (
-  <ul className="list-group list-group-flush">
-    {players.map(el => (
-      <li className="list-group-item" key={el.id}>
-        {el.name}
-      </li>
+  <table className="table">
+  	<thead><tr><th>Player Name</th><th>ELO</th></tr></thead>
+  	<tbody>
+    {players.map(player => (
+      <tr key={player.id}>
+      	<th>{player.name}</th>
+      	<td>{player.elo}</td>
+      </tr>
     ))}
-  </ul>
+    </tbody>
+  </table>
 );
 const List = connect(mapStateToProps)(ConnectedList);
 export default List;

@@ -1,11 +1,17 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import uuidv1 from "uuid";
-import { addPlayer } from "../actions/index";
+import { createPlayer } from "../actions/index";
+
+
+
+const initialState = {
+    name : '',
+    elo : 1500,
+};
 
 const mapDispatchToProps = dispatch => {
   return {
-    addPlayer: player => dispatch(addPlayer(player))
+    createPlayer: player => dispatch(createPlayer(player))
   };
 };
 
@@ -13,9 +19,7 @@ class ConnectedForm extends Component {
   constructor() {
     super();
 
-    this.state = {
-      name : '',
-    };
+    this.state = initialState;
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -25,16 +29,19 @@ class ConnectedForm extends Component {
     this.setState({ [event.target.id]: event.target.value });
   }
 
+  setELO(event) {
+    this.setState({ elo: parseFloat(event.target.value) });
+  }
+
   handleSubmit(event) {
     event.preventDefault();
-    const { name } = this.state;
-    const id = uuidv1();
-    this.props.addPlayer({ name, id });
-    this.setState({ name: "" });
+    const { name, elo } = this.state;
+    this.props.createPlayer({ name, elo });
+    this.setState(initialState);
   }
 
   render() {
-    const { name } = this.state;
+    const { name, elo } = this.state;
     return (
       <form onSubmit={this.handleSubmit}>
         <div className="field">
@@ -46,6 +53,17 @@ class ConnectedForm extends Component {
             placeholder="Enter the player's name"
             value={name}
             onChange={this.handleChange}
+          />
+        </div>
+        <div className="field">        
+          <label htmlFor="elo" className="label">Initial ELO</label>
+          <input
+            type="number"
+            className="input is-primary"
+            id="elo"
+            placeholder="Enter the player's starting ELO score"
+            value={elo}
+            onChange={this.setELO}
           />
         </div>
         <button type="submit" className="button is-primary">

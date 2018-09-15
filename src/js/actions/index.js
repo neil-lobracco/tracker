@@ -12,3 +12,17 @@ export function loadPlayers() {
 				err => console.log(err));
 	}
 }
+
+export function createPlayer(player) {
+	return function(dispatch) {
+		return fetch("/api/players", {
+			method: 'POST',
+			headers : {"Content-Type": "application/json; charset=utf-8", },
+			body: JSON.stringify(player),
+		})
+		.then(response =>  { return response.json() },
+			err => console.log(err))
+		.then(json => dispatch(addPlayer(json)),
+			err => console.log(err));
+	}
+}

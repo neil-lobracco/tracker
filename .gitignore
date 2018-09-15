@@ -60,3 +60,5 @@ typings/
 # webpack
 dist/
 
+#rust stuff
+src/server/target/

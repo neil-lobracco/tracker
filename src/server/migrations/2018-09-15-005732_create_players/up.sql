@@ -1,0 +1,5 @@
+CREATE TABLE players (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    elo DOUBLE PRECISION NOT NULL
+)

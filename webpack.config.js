@@ -35,5 +35,8 @@ module.exports = {
       filename: "[name].css",
       chunkFilename: "[id].css"
     })
-  ]
+  ],
+  devServer: {
+      proxy: { '/api': { target: 'http://localhost:8000', pathRewrite: { '^/api': '' } } },
+  },
 };

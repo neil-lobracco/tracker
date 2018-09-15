@@ -21,7 +21,9 @@ use rocket::http::Status;
 use rocket::request::{self, FromRequest};
 use rocket::{Request, State, Outcome};
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-
+#[macro_use]
+extern crate serde_derive;
+use rocket_contrib::Json;
 
 
 // Connection request guard type: a wrapper around an r2d2 pooled connection.
@@ -50,17 +52,23 @@ impl Deref for DbConn {
     }
 }
 
-#[get("/players")]
-fn index(conn: DbConn) -> String {
-    use self::schema::players::dsl::*;
-    let results = players.load::<Player>(&*conn).unwrap().len();
-    format!("{}", results)
 
+use self::schema::players::dsl::*;
+
+#[get("/players")]
+fn get_players(conn: DbConn) -> QueryResult<Json<Vec<Player>>> {
+    players.load::<Player>(&*conn)
+    	.map(|ps| Json(ps))
+}
+
+#[post("/players", data = "<player>")]
+fn create_player(conn: DbConn, player: Json<NewPlayer>) -> Json<Player> {
+	Json(diesel::insert_into(players).values(&player.into_inner()).get_result(&*conn).expect("couldn't save post"))
 }
 
 fn main() {
     rocket::ignite()
     	.manage(init_pool())
-    	.mount("/", routes![index])
+    	.mount("/", routes![get_players, create_player])
     	.launch();
 }

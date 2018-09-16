@@ -10,4 +10,5 @@ rocket_codegen = "0.3.16"
 rocket_contrib = "*"
 serde = "1.0"
 serde_derive = "1.0"
-diesel = { version = "<= 1.2", features = ["postgres", "r2d2"] }
+diesel = { version = "<= 1.2", features = ["postgres", "r2d2", "chrono"] }
+chrono = { version = "0.4.6", features = ["serde"] }

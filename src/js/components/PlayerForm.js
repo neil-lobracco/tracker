@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { createPlayer } from "../actions/index";
 
-
-
 const initialState = {
     name : '',
     elo : 1500,
@@ -18,11 +16,7 @@ const mapDispatchToProps = dispatch => {
 class ConnectedForm extends Component {
   constructor() {
     super();
-
     this.state = initialState;
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange(event) {
@@ -43,7 +37,7 @@ class ConnectedForm extends Component {
   render() {
     const { name, elo } = this.state;
     return (
-      <form onSubmit={this.handleSubmit}>
+      <form onSubmit={this.handleSubmit.bind(this)}>
         <div className="field">
           <label htmlFor="name" className="label">Name</label>
           <input
@@ -52,7 +46,7 @@ class ConnectedForm extends Component {
             id="name"
             placeholder="Enter the player's name"
             value={name}
-            onChange={this.handleChange}
+            onChange={this.handleChange.bind(this)}
           />
         </div>
         <div className="field">        
@@ -63,7 +57,7 @@ class ConnectedForm extends Component {
             id="elo"
             placeholder="Enter the player's starting ELO score"
             value={elo}
-            onChange={this.setELO}
+            onChange={this.setELO.bind(this)}
           />
         </div>
         <button type="submit" className="button is-primary">

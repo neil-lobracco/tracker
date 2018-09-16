@@ -39,10 +39,11 @@ class ConnectedForm extends Component {
 
     const scores = getScores(this.state.winner);
     this.props.createMatch({
-      player1: this.state.contestants[0].id,
-      player2: this.state.contestants[1].id,
+      player1_id: this.state.contestants[0].id,
+      player2_id: this.state.contestants[1].id,
       player1_score: scores[0],
       player2_score: scores[1],
+      comment: this.state.comment,
     });
     this.setState(initialState);
   }
@@ -52,6 +53,12 @@ class ConnectedForm extends Component {
       this.props.players.find(p => p.id == parseInt(o.value))
     );
     this.setState({contestants});
+  }
+
+  setComment(event) {
+    let comment = event.target.value;
+    if (!comment || comment.trim() == '') { comment = null; }
+    this.setState({ comment });
   }
 
   canSubmit() {
@@ -89,6 +96,9 @@ class ConnectedForm extends Component {
             </label>
           </div>
         }
+        <div className='control'>
+          <input className='input' name='comment' placeholder='Match comments' onChange={this.setComment.bind(this)}/>
+        </div>
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE
         </button>

@@ -1,6 +1,8 @@
-import { ADD_PLAYER, RECEIVE_PLAYERS } from "../constants/action-types";
+import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH } from "../constants/action-types";
 export const addPlayer = player => ({ type: ADD_PLAYER, payload: player });
+export const addMatch = match => ({ type: ADD_MATCH, payload: match });
 export const receivePlayers = (players) => ({ type: RECEIVE_PLAYERS, payload: players });
+export const receiveMatches = (matches) => ({ type: RECEIVE_MATCHES, payload: matches });
 
 export function loadPlayers() {
 	return function(dispatch) {
@@ -8,6 +10,16 @@ export function loadPlayers() {
 			.then(response =>  { return response.json() },
 				err => console.log(err))
 			.then(json => dispatch(receivePlayers(json)),
+				err => console.log(err));
+	}
+}
+
+export function loadMatches() {
+	return function(dispatch) {
+		return fetch("/api/matches")
+			.then(response =>  { return response.json() },
+				err => console.log(err))
+			.then(json => dispatch(receiveMatches(json)),
 				err => console.log(err));
 	}
 }
@@ -35,7 +47,10 @@ export function createMatch(match) {
 		})
 		.then(response =>  { return response.json() },
 			err => console.log(err))
-		.then(json => dispatch(loadPlayers()),
+		.then(json => {
+			dispatch(addMatch(json))
+			dispatch(loadPlayers());
+		},
 			err => console.log(err));
 	}
 }

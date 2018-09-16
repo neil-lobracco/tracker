@@ -23,7 +23,8 @@ pub struct Match {
     pub player1_id: i32,
     pub player2_id: i32,
     pub player1_score: f64,
-    pub player2_score: f64
+    pub player2_score: f64,
+    pub created_at: chrono::DateTime<chrono::prelude::Utc>
 }
 
 #[derive(Insertable, Deserialize)]

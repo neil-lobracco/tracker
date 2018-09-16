@@ -16,6 +16,7 @@ table! {
         player2_id -> Int4,
         player1_score -> Float8,
         player2_score -> Float8,
+        created_at -> Timestamptz,
     }
 }
 

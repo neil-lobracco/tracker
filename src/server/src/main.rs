@@ -61,6 +61,11 @@ fn create_player(conn: DbConn, player: Json<NewPlayer>) -> Result<Json<Player>, 
 	Ok(Json(player))
 }
 
+#[get("/matches")]
+fn get_matches(conn: DbConn) -> QueryResult<Json<Vec<Match>>> {
+    matches::table.order_by(matches::created_at.desc()).load::<Match>(&*conn).map(|ms| Json(ms))
+}
+
 #[post("/matches", data = "<the_match_json>")]
 fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Match>, diesel::result::Error> {
 	let the_match: NewMatch = the_match_json.into_inner();
@@ -95,6 +100,6 @@ fn normalize_scores(p1score: f64, p2score: f64) -> (f64, f64) {
 fn main() {
     rocket::ignite()
     	.manage(init_pool())
-    	.mount("/", routes![get_players, create_player, create_match])
+    	.mount("/", routes![get_players, create_player, create_match, get_matches])
     	.launch();
 }

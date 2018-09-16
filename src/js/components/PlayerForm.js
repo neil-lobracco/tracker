@@ -61,7 +61,7 @@ class ConnectedForm extends Component {
           />
         </div>
         <button type="submit" className="button is-primary">
-          SAVE
+          Create Player
         </button>
       </form>
     );

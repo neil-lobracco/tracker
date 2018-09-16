@@ -7,7 +7,7 @@ import '../../main.css';
 const App = () => (
   <div className="columns">
     <div className="column">
-      <h2>Players</h2>
+      <h2>Leaderboard</h2>
       <PlayerList />
     </div>
     <div className="column">

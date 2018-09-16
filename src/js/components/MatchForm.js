@@ -82,6 +82,7 @@ class ConnectedForm extends Component {
         </div>
         { contestants.length == 2 && 
           <div className="control">
+            <label>Winner: </label>
             <label className="radio">
               <input type="radio" name="winner" value="player1" checked={winner == "player1"} onChange={this.winnerSelected.bind(this)}/>
               {contestants[0].name}

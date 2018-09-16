@@ -1,4 +1,4 @@
-import { ADD_PLAYER, FETCH_PLAYERS, RECEIVE_PLAYERS } from "../constants/action-types";
+import { ADD_PLAYER, RECEIVE_PLAYERS } from "../constants/action-types";
 export const addPlayer = player => ({ type: ADD_PLAYER, payload: player });
 export const receivePlayers = (players) => ({ type: RECEIVE_PLAYERS, payload: players });
 

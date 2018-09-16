@@ -2,16 +2,9 @@
 #![plugin(rocket_codegen)]
 extern crate rocket;
 #[macro_use] extern crate diesel;
+#[macro_use] extern crate serde_derive;
 
 use diesel::pg::PgConnection;
-
-type PostgresPool = Pool<ConnectionManager<PgConnection>>;
-
-/// Initializes a database pool.
-fn init_pool() -> PostgresPool {
-    let manager = ConnectionManager::<PgConnection>::new(std::env::var("DATABASE_URL").unwrap());
-    Pool::new(manager).expect("db pool")
-}
 pub mod schema;
 pub mod models;
 use self::models::*;
@@ -22,22 +15,21 @@ use rocket::http::Status;
 use rocket::request::{self, FromRequest};
 use rocket::{Request, State, Outcome};
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-#[macro_use]
-extern crate serde_derive;
 use rocket_contrib::Json;
 
 static K: f64 = 25.0;
 
+type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
-// Connection request guard type: a wrapper around an r2d2 pooled connection.
+/// Initializes a database pool.
+fn init_pool() -> PostgresPool {
+    let manager = ConnectionManager::<PgConnection>::new(std::env::var("DATABASE_URL").unwrap());
+    Pool::new(manager).expect("db pool")
+}
+
 pub struct DbConn(pub PooledConnection<ConnectionManager<PgConnection>>);
-
-/// Attempts to retrieve a single connection from the managed database pool. If
-/// no pool is currently managed, fails with an `InternalServerError` status. If
-/// no connections are available, fails with a `ServiceUnavailable` status.
 impl<'a, 'r> FromRequest<'a, 'r> for DbConn {
     type Error = ();
-
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let pool = request.guard::<State<PostgresPool>>()?;
         match pool.get() {
@@ -59,7 +51,7 @@ impl Deref for DbConn {
 
 #[get("/players")]
 fn get_players(conn: DbConn) -> QueryResult<Json<Vec<Player>>> {
-    players::table.load::<Player>(&*conn).map(|ps| Json(ps))
+    players::table.order_by(players::elo.desc()).load::<Player>(&*conn).map(|ps| Json(ps))
 }
 
 #[post("/players", data = "<player>")]
@@ -74,7 +66,6 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 	let the_match: NewMatch = the_match_json.into_inner();
 	let player1: Player = players::table.filter(players::id.eq(the_match.player1_id)).first::<Player>(&*conn)?;
 	let player2: Player = players::table.filter(players::id.eq(the_match.player2_id)).first::<Player>(&*conn)?;
-	let created_match: Match = diesel::insert_into(matches::table).values(&the_match).get_result(&*conn)?;
 	let r1 = player1.elo;
 	let r2 = player2.elo;
 	let e1 = 1_f64 / (1_f64 + (10_f64.powf((r2 - r1) / 400_f64)));
@@ -84,11 +75,15 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 	let r1p = r1 + (K * (s1 - e1));
 	let r2p = r2 + (K * (s2 - e2));
 	println!("Adjusting scores from {}, {} to {}, {}", r1, r2, r1p, r2p);
-	diesel::update(&player1).set(players::elo.eq(r1p)).execute(&*conn)?;
-	diesel::update(&player2).set(players::elo.eq(r2p)).execute(&*conn)?;
-	let p1_elo_entry = NewEloEntry { player_id: player1.id, score: r1p, match_id: Some(created_match.id)};
-	let p2_elo_entry = NewEloEntry { player_id: player2.id, score: r2p, match_id: Some(created_match.id)};
-	diesel::insert_into(elo_entries::table).values(&vec![p1_elo_entry, p2_elo_entry]).execute(&*conn)?;
+	let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
+		let created_match: Match = diesel::insert_into(matches::table).values(&the_match).get_result(&*conn)?;
+		diesel::update(&player1).set(players::elo.eq(r1p)).execute(&*conn)?;
+		diesel::update(&player2).set(players::elo.eq(r2p)).execute(&*conn)?;
+		let p1_elo_entry = NewEloEntry { player_id: player1.id, score: r1p, match_id: Some(created_match.id)};
+		let p2_elo_entry = NewEloEntry { player_id: player2.id, score: r2p, match_id: Some(created_match.id)};
+		diesel::insert_into(elo_entries::table).values(&vec![p1_elo_entry, p2_elo_entry]).execute(&*conn)?;
+		Ok(created_match)
+	})?;
 	Ok(Json(created_match))
 }
 

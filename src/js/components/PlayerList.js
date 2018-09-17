@@ -4,18 +4,30 @@ import { Link } from 'react-router-dom';
 const mapStateToProps = state => {
   return { players: state.players };
 };
-const ConnectedList = ({ players }) => (
-  <table className="table">
-  	<thead><tr><th>Player Name</th><th>Current Elo</th></tr></thead>
-  	<tbody>
-    {players.map(player => (
-      <tr key={player.id}>
-      	<th><Link to={`/players/${player.id}`}>{player.name}</Link></th>
-      	<td>{player.elo}</td>
-      </tr>
-    ))}
-    </tbody>
-  </table>
-);
+class ConnectedList extends React.Component {
+  getFancyName(playerName, idx) {
+    let prefix = '';
+    if (idx == 0) {
+      prefix = '😁 ';
+    } else if (idx == (this.props.players.length - 1)) {
+      prefix = '😞 ';
+    }
+    return prefix + playerName;
+  }
+  render() {
+    return (
+    <table className="table">
+    	<thead><tr><th>Player Name</th><th>Current Elo</th></tr></thead>
+    	<tbody>
+      {this.props.players.map((player, idx) => (
+        <tr key={player.id}>
+        	<th><Link to={`/players/${player.id}`}>{ this.getFancyName(player.name, idx) }</Link></th>
+        	<td>{player.elo}</td>
+        </tr>
+      ))}
+      </tbody>
+    </table>);
+}
+}
 const List = connect(mapStateToProps)(ConnectedList);
 export default List;

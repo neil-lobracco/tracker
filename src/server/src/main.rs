@@ -66,6 +66,18 @@ fn get_matches(conn: DbConn) -> QueryResult<Json<Vec<Match>>> {
     matches::table.order_by(matches::created_at.desc()).load::<Match>(&*conn).map(|ms| Json(ms))
 }
 
+#[get("/players/<player_id>/matches")]
+fn get_matches_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<Vec<Match>>> {
+    matches::table.filter(matches::player1_id.eq(player_id)).or_filter(matches::player2_id.eq(player_id))
+    	.order_by(matches::created_at.desc()).load::<Match>(&*conn).map(|ms| Json(ms))
+}
+
+#[get("/players/<player_id>/elo_entries")]
+fn get_elo_entries_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<Vec<EloEntry>>> {
+    elo_entries::table.filter(elo_entries::player_id.eq(player_id))
+    	.order_by(elo_entries::created_at.asc()).load::<EloEntry>(&*conn).map(|entries| Json(entries))
+}
+
 #[post("/matches", data = "<the_match_json>")]
 fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Match>, diesel::result::Error> {
 	let the_match: NewMatch = the_match_json.into_inner();
@@ -100,6 +112,6 @@ fn normalize_scores(p1score: f64, p2score: f64) -> (f64, f64) {
 fn main() {
     rocket::ignite()
     	.manage(init_pool())
-    	.mount("/", routes![get_players, create_player, create_match, get_matches])
+    	.mount("/", routes![get_players, create_player, create_match, get_matches, get_matches_for_player, get_elo_entries_for_player])
     	.launch();
 }

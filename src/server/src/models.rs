@@ -45,8 +45,8 @@ pub struct EloEntry {
 	pub id: i32,
 	pub score: f64,
 	pub created_at: chrono::DateTime<chrono::prelude::Utc>,
+    pub match_id: Option<i32>,
 	pub player_id: i32,
-	pub match_id: Option<i32>,
 }
 
 #[derive(Insertable, Deserialize)]

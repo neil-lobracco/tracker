@@ -50,12 +50,12 @@ class ConnectedForm extends Component {
           />
         </div>
         <div className="field">        
-          <label htmlFor="elo" className="label">Initial ELO</label>
+          <label htmlFor="elo" className="label">Initial Elo</label>
           <input
             type="number"
             className="input is-primary"
             id="elo"
-            placeholder="Enter the player's starting ELO score"
+            placeholder="Enter the player's starting Elo score"
             value={elo}
             onChange={this.setELO.bind(this)}
           />

@@ -5,6 +5,7 @@ import { createMatch } from "../actions/index";
 const initialState = {
     contestants: [],
     winner: null,
+    comment: null,
 };
 
 const getScores = winner => {

@@ -1,15 +1,16 @@
 import React from "react";
 import { connect } from "react-redux";
+import { Link } from 'react-router-dom';
 const mapStateToProps = state => {
   return { players: state.players };
 };
 const ConnectedList = ({ players }) => (
   <table className="table">
-  	<thead><tr><th>Player Name</th><th>ELO</th></tr></thead>
+  	<thead><tr><th>Player Name</th><th>Current Elo</th></tr></thead>
   	<tbody>
     {players.map(player => (
       <tr key={player.id}>
-      	<th>{player.name}</th>
+      	<th><Link to={`/players/${player.id}`}>{player.name}</Link></th>
       	<td>{player.elo}</td>
       </tr>
     ))}

@@ -74,12 +74,17 @@ class ConnectedForm extends Component {
     const {contestants, winner } = this.state;
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
-        <div className="select is-multiple">
-          <select multiple id="players" onChange={this.playersSelected.bind(this)}>
-          {this.props.players.map(player => (
-            <option key={player.id} value={player.id}>{player.name}</option>
-          ))}
-          </select>
+        <div className='columns'>
+          <div className="select is-multiple column">
+            <select multiple id="players" onChange={this.playersSelected.bind(this)}>
+            {this.props.players.map(player => (
+              <option key={player.id} value={player.id}>{player.name}</option>
+            ))}
+            </select>
+          </div>
+          <div className='column'>
+            <label>Select the two contestants (Command or Ctrl-click to select multiple)</label>
+          </div>
         </div>
         { contestants.length == 2 && 
           <div className="control">

@@ -31,7 +31,7 @@ class PlayerDetail extends React.Component {
   getChartData() {
     return [
       {
-        x: this.props.playerDetail.eloEntries.map(e => e.created_at),
+        x: this.props.playerDetail.eloEntries.map((e,idx) => idx + 1),
         y: this.props.playerDetail.eloEntries.map(e => e.score),
         type: 'scatter',
         mode: 'lines+points',
@@ -45,6 +45,16 @@ class PlayerDetail extends React.Component {
     return `Elo Score over time for ${playerName}`;
   }
 
+  getChartLayout() {
+    return {
+      width: '70%',
+      height: '70%',
+      title: this.getChartTitle(),
+      xaxis : { title: 'Games played' },
+      yaxis : { title: 'Elo rating' },
+    };
+  }
+
   componentDidMount() {
     if (!this.hasValidDetailsLoaded()) {
       this.props.loadPlayerDetail(this.props.match.params.playerId);
@@ -55,7 +65,7 @@ class PlayerDetail extends React.Component {
     return this.hasValidDetailsLoaded() && this.hasPlayersLoaded() ? (
       <LoadableChart
         data={this.getChartData()}
-        layout={ {width: '70%', height: '70%', title: this.getChartTitle()} }
+        layout={ this.getChartLayout()}
       />
     ) : <div>Loading...</div>;
   }

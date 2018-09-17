@@ -36,6 +36,11 @@ module.exports = {
       chunkFilename: "[id].css"
     })
   ],
+     optimization: {
+           splitChunks: {
+                 chunks: 'all'
+       }
+   },
   devServer: {
       proxy: { '/api': { target: 'http://localhost:8000', pathRewrite: { '^/api': '' } } },
   },

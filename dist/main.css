@@ -1,0 +1,10 @@
+#app {
+	margin: 50px;
+}
+
+.tabs li a.is-active {
+	color: #3273dc;
+	background-color: white;
+	border-color: #dbdbdb;
+	border-bottom-color: transparent !important;
+}

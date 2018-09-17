@@ -57,8 +57,5 @@ typings/
 # dotenv environment variables file
 .env
 
-# webpack
-dist/
-
 #rust stuff
 src/server/target/

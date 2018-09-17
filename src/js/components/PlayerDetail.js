@@ -1,7 +1,12 @@
 import React from 'react';
-import Plot from 'react-plotly.js';
 import { connect } from "react-redux";
 import {loadPlayerDetail }from "../actions/index";
+import Loadable from 'react-loadable';
+
+const LoadableChart = Loadable({
+  loader: () => import('react-plotly.js'),
+  loading: () => <div>Loading...</div>,
+});
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -48,7 +53,7 @@ class PlayerDetail extends React.Component {
 
   render() {
     return this.hasValidDetailsLoaded() && this.hasPlayersLoaded() ? (
-      <Plot
+      <LoadableChart
         data={this.getChartData()}
         layout={ {width: '70%', height: '70%', title: this.getChartTitle()} }
       />

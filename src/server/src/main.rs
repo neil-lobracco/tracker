@@ -91,6 +91,7 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 	let (s1, s2) = normalize_scores(the_match.player1_score, the_match.player2_score);
 	println!("Expected players to score {},{} but actually scored {}, {}", e1, e2, s1, s2);
 	let K = get_k(the_match.player1_score, the_match.player2_score);
+	println!("Using k={}",K);
 	let r1p = r1 + (K * (s1 - e1));
 	let r2p = r2 + (K * (s2 - e2));
 	println!("Adjusting scores from {}, {} to {}, {}", r1, r2, r1p, r2p);

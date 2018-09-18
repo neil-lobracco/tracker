@@ -31,7 +31,7 @@ class PlayerDetail extends React.Component {
   getChartData() {
     return [
       {
-        x: this.props.playerDetail.eloEntries.map((e,idx) => idx + 1),
+        x: this.props.playerDetail.eloEntries.map((e,idx) => idx),
         y: this.props.playerDetail.eloEntries.map(e => e.score),
         type: 'scatter',
         mode: 'lines+points',

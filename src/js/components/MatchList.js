@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import moment from 'moment';
 
 const getMatchDescription = (match, players) => {
   if (players.length == 0) { return ''; }
@@ -19,11 +20,11 @@ const mapStateToProps = state => {
 };
 const ConnectedList = ({ matches, players }) => (
   <table className="table">
-  	<thead><tr><th>Date</th><th>Outcome</th><th>Score</th><th>Comment</th></tr></thead>
+  	<thead><tr><th>Time</th><th>Outcome</th><th>Score</th><th>Comment</th></tr></thead>
   	<tbody>
     {matches.map(match => (
       <tr key={match.id}>
-      	<td>{match.created_at}</td>
+      	<td>{moment(match.created_at).calendar()}</td>
       	<td>{getMatchDescription(match, players)}</td>
         <td>{getMatchScore(match)}</td>
         <td>{match.comment}</td>

@@ -17,7 +17,8 @@ use rocket::{Request, State, Outcome};
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use rocket_contrib::Json;
 
-static K: f64 = 25.0;
+static K_win_loss: f64 = 25.0;
+static K_scored: f64 = 40.0;
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -89,6 +90,7 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 	let e2 = 1_f64 - e1;
 	let (s1, s2) = normalize_scores(the_match.player1_score, the_match.player2_score);
 	println!("Expected players to score {},{} but actually scored {}, {}", e1, e2, s1, s2);
+	let K = get_k(the_match.player1_score, the_match.player2_score);
 	let r1p = r1 + (K * (s1 - e1));
 	let r2p = r2 + (K * (s2 - e2));
 	println!("Adjusting scores from {}, {} to {}, {}", r1, r2, r1p, r2p);
@@ -102,6 +104,14 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 		Ok(created_match)
 	})?;
 	Ok(Json(created_match))
+}
+
+fn get_k(score1: f64, score2: f64) -> f64 {
+	if score1 + score2 == 1.0 {
+		K_win_loss
+	} else {
+		K_scored
+	}
 }
 
 fn normalize_scores(p1score: f64, p2score: f64) -> (f64, f64) {

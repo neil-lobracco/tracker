@@ -13,7 +13,7 @@ const rootReducer = (state = initialState, action) => {
      case RECEIVE_MATCHES:
       return { ...state, matches: action.payload };
      case ADD_MATCH:
-      return {...state, matches: [...state.matches, action.payload] };
+      return {...state, matches: [action.payload, ...state.matches ] };
      case RECEIVE_PLAYER_DETAIL:
       return {...state, playerDetail: {eloEntries: action.payload, playerId: action.playerId} };
     default:

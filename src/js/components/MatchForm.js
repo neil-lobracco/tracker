@@ -5,19 +5,9 @@ import { createMatch } from "../actions/index";
 const initialState = {
     contestants: [],
     winner: null,
-    comment: null,
+    comment: '',
+    score: '',
 };
-
-const getScores = winner => {
-  switch (winner) {
-    case 'player1':
-      return [1,0];
-    case 'player2':
-      return [0,1];
-    case 'draw':
-      return [0.5, 0.5];
-  }
-}
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -38,13 +28,13 @@ class ConnectedForm extends Component {
   handleSubmit(event) {
     event.preventDefault();
 
-    const scores = getScores(this.state.winner);
+    const scores = this.getScores();
     this.props.createMatch({
       player1_id: this.state.contestants[0].id,
       player2_id: this.state.contestants[1].id,
       player1_score: scores[0],
       player2_score: scores[1],
-      comment: this.state.comment,
+      comment: this.state.comment == '' ? null : this.state.comment,
     });
     this.setState(initialState);
   }
@@ -61,9 +51,33 @@ class ConnectedForm extends Component {
     if (!comment || comment.trim() == '') { comment = null; }
     this.setState({ comment });
   }
+  getScores() {
+    const { winner, score } = this.state;
+    if (winner == null) { return null; }
+    if (score == '') {
+      switch (winner) {
+        case 'player1':
+          return [1,0];
+        case 'player2':
+          return [0,1];
+        case 'draw':
+          return [0.5, 0.5];
+      }
+    }
+    const matchRes = score.match(/(\d+)-(\d+)/);
+    if (matchRes == null) { return null; }
+    const results = matchRes.slice(1).map(r => parseInt(r));
+    if (isNaN(results[0] || isNaN(results[1]))) { return null; }
+    if ((winner == 'draw') != (results[0] == results[1])) { return null; }
+    return results.sort((s1,s2) => winner == 'player1' ? s2 - s1 : s1 - s2);
+  }
+
+  setScore(event) {
+    this.setState({ score: event.target.value });
+  }
 
   canSubmit() {
-    return this.state.contestants.length == 2 && this.state.winner != null;
+    return this.state.contestants.length == 2 && this.getScores() != null;
   }
 
   winnerSelected(event) {
@@ -88,7 +102,7 @@ class ConnectedForm extends Component {
         </div>
         { contestants.length == 2 && 
           <div className="control">
-            <label>Winner: </label>
+            <label className="radio">Winner: </label>
             <label className="radio">
               <input type="radio" name="winner" value="player1" checked={winner == "player1"} onChange={this.winnerSelected.bind(this)}/>
               {contestants[0].name}
@@ -103,8 +117,17 @@ class ConnectedForm extends Component {
             </label>
           </div>
         }
-        <div className='control'>
-          <input className='input' name='comment' placeholder='Match comments' onChange={this.setComment.bind(this)}/>
+        <div className='field'>
+          <label className='label'>Score (optional)</label>
+          <div className='control'>
+            <input className='input' name='score' placeholder='5-3' onChange={this.setScore.bind(this)} value={this.state.score}/>
+          </div>
+        </div>
+        <div className='field'>
+          <label className='label'>Comments (optional)</label>
+          <div className='control'>
+            <input className='input' name='comment' placeholder='A well fought match' onChange={this.setComment.bind(this)} value={this.state.comment}/>
+          </div>
         </div>
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE

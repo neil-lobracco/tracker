@@ -8,3 +8,11 @@
 	border-color: #dbdbdb;
 	border-bottom-color: transparent !important;
 }
+
+input[type="radio"] {
+	margin-right: 5px;
+}
+
+.radio + .radio {
+	margin-left: 1em;
+}

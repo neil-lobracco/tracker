@@ -1,4 +1,4 @@
-import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL } from "../constants/action-types";
+import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL, INVALIDATE_PLAYER_DETAIL } from "../constants/action-types";
 const initialState = {
   players: [],
   matches: [],
@@ -16,6 +16,8 @@ const rootReducer = (state = initialState, action) => {
       return {...state, matches: [action.payload, ...state.matches ] };
      case RECEIVE_PLAYER_DETAIL:
       return {...state, playerDetail: {eloEntries: action.payload, playerId: action.playerId} };
+     case INVALIDATE_PLAYER_DETAIL:
+      return {...state, playerDetail: {}};
     default:
       return state;
   }

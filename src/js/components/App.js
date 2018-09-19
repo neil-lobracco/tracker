@@ -1,5 +1,5 @@
 import React from "react";
-import {HashRouter, Route, NavLink, Switch, Redirect} from 'react-router-dom';
+import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
 import Players from "./Players";
 import PlayerDetail from "./PlayerDetail";
 import Matches from "./Matches";
@@ -22,8 +22,8 @@ const Container = () => (
   </div>
 );
 const App = () => (
-  <HashRouter>
+  <Router>
   	<Container/>
-  </HashRouter>
+  </Router>
 );
 export default App;

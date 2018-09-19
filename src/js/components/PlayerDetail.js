@@ -34,7 +34,8 @@ class PlayerDetail extends React.Component {
         x: this.props.playerDetail.eloEntries.map((e,idx) => idx),
         y: this.props.playerDetail.eloEntries.map(e => e.score),
         type: 'scatter',
-        mode: 'lines+points',
+        line: {shape: 'vh'},
+        mode: 'lines+markers',
         marker: {color: 'red'},
       },
     ];

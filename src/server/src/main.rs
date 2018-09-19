@@ -53,13 +53,13 @@ impl Deref for DbConn {
 
 
 #[get("/players")]
-fn get_players(conn: DbConn) -> QueryResult<Json<Vec<response::Player>>> {
+fn get_players(conn: DbConn) -> QueryResult<Json<Vec<responses::Player>>> {
     let query = elo_entries::table.inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
     	.select((players::all_columns, diesel::dsl::sql::<diesel::sql_types::BigInt>("count(elo_entries.*)")))
     	.group_by(players::id)
     	.order_by(players::elo.desc());
 	query.load::<(Player, i64)>(&*conn)
-	.map(|tups| Json(tups.into_iter().map(|tup| response::Player {
+	.map(|tups| Json(tups.into_iter().map(|tup| responses::Player {
 		id: tup.0.id,
 		elo: tup.0.elo,
 		name: tup.0.name,
@@ -67,11 +67,17 @@ fn get_players(conn: DbConn) -> QueryResult<Json<Vec<response::Player>>> {
 	}).collect()))
 }
 
-#[post("/players", data = "<player>")]
-fn create_player(conn: DbConn, player: Json<NewPlayer>) -> Result<Json<response::Player>, diesel::result::Error> {
-	let player: Player = diesel::insert_into(players::table).values(&player.into_inner()).get_result(&*conn)?;
+#[post("/players", data = "<player_json>")]
+fn create_player(conn: DbConn, player_json: Json<requests::CreatePlayer>) -> Result<Json<responses::Player>, diesel::result::Error> {
+	let create_player = player_json.into_inner();
+	let new_player = NewPlayer {
+		name: create_player.name,
+		league_id: 1,
+		elo: 1500.0,
+	};
+	let player: Player = diesel::insert_into(players::table).values(&new_player).get_result(&*conn)?;
 	diesel::insert_into(elo_entries::table).values(&NewEloEntry { player_id: player.id, match_id: None, score: player.elo }).execute(&*conn)?;
-	Ok(Json(response::Player {
+	Ok(Json(responses::Player {
 		id: player.id,
 		elo: player.elo,
 		name: player.name,
@@ -97,8 +103,8 @@ fn get_elo_entries_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<
 }
 
 #[post("/matches", data = "<the_match_json>")]
-fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Match>, diesel::result::Error> {
-	let the_match: NewMatch = the_match_json.into_inner();
+fn create_match(conn: DbConn, the_match_json: Json<requests::CreateMatch>) -> Result<Json<Match>, diesel::result::Error> {
+	let the_match = the_match_json.into_inner();
 	let player1: Player = players::table.filter(players::id.eq(the_match.player1_id)).first::<Player>(&*conn)?;
 	let player2: Player = players::table.filter(players::id.eq(the_match.player2_id)).first::<Player>(&*conn)?;
 	let r1 = player1.elo;
@@ -112,8 +118,16 @@ fn create_match(conn: DbConn, the_match_json: Json<NewMatch>) -> Result<Json<Mat
 	let r1p = r1 + (K * (s1 - e1));
 	let r2p = r2 + (K * (s2 - e2));
 	println!("Adjusting scores from {}, {} to {}, {}", r1, r2, r1p, r2p);
+	let new_match = NewMatch {
+		player1_id: the_match.player1_id,
+		player2_id: the_match.player2_id,
+		player1_score: the_match.player1_score,
+		player2_score: the_match.player2_score,
+		comment: the_match.comment,
+		league_id: 1,
+	};
 	let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
-		let created_match: Match = diesel::insert_into(matches::table).values(&the_match).get_result(&*conn)?;
+		let created_match: Match = diesel::insert_into(matches::table).values(&new_match).get_result(&*conn)?;
 		diesel::update(&player1).set(players::elo.eq(r1p)).execute(&*conn)?;
 		diesel::update(&player2).set(players::elo.eq(r2p)).execute(&*conn)?;
 		let p1_elo_entry = NewEloEntry { player_id: player1.id, score: r1p, match_id: Some(created_match.id)};

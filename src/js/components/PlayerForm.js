@@ -57,6 +57,7 @@ class ConnectedForm extends Component {
             id="elo"
             placeholder="Enter the player's starting Elo score"
             value={elo}
+            disabled='disabled'
             onChange={this.setELO.bind(this)}
           />
         </div>

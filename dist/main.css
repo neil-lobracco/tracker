@@ -16,3 +16,7 @@ input[type="radio"] {
 .radio + .radio {
 	margin-left: 1em;
 }
+
+tr.inactive {
+	opacity: 0.3;
+}

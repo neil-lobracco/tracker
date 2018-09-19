@@ -7,6 +7,8 @@ extern crate rocket;
 use diesel::pg::PgConnection;
 pub mod schema;
 pub mod models;
+pub mod interface_types;
+use self::interface_types::*;
 use self::models::*;
 use self::schema::*;
 use self::diesel::prelude::*;
@@ -51,15 +53,30 @@ impl Deref for DbConn {
 
 
 #[get("/players")]
-fn get_players(conn: DbConn) -> QueryResult<Json<Vec<Player>>> {
-    players::table.order_by(players::elo.desc()).load::<Player>(&*conn).map(|ps| Json(ps))
+fn get_players(conn: DbConn) -> QueryResult<Json<Vec<response::Player>>> {
+    let query = elo_entries::table.inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
+    	.select((players::all_columns, diesel::dsl::sql::<diesel::sql_types::BigInt>("count(elo_entries.*)")))
+    	.group_by(players::id)
+    	.order_by(players::elo.desc());
+	query.load::<(Player, i64)>(&*conn)
+	.map(|tups| Json(tups.into_iter().map(|tup| response::Player {
+		id: tup.0.id,
+		elo: tup.0.elo,
+		name: tup.0.name,
+		games_played: tup.1 - 1
+	}).collect()))
 }
 
 #[post("/players", data = "<player>")]
-fn create_player(conn: DbConn, player: Json<NewPlayer>) -> Result<Json<Player>, diesel::result::Error> {
+fn create_player(conn: DbConn, player: Json<NewPlayer>) -> Result<Json<response::Player>, diesel::result::Error> {
 	let player: Player = diesel::insert_into(players::table).values(&player.into_inner()).get_result(&*conn)?;
 	diesel::insert_into(elo_entries::table).values(&NewEloEntry { player_id: player.id, match_id: None, score: player.elo }).execute(&*conn)?;
-	Ok(Json(player))
+	Ok(Json(response::Player {
+		id: player.id,
+		elo: player.elo,
+		name: player.name,
+		games_played: 0
+	}))
 }
 
 #[get("/matches")]

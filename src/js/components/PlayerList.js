@@ -20,7 +20,7 @@ class ConnectedList extends React.Component {
     	<thead><tr><th>Player Name</th><th>Current Elo</th></tr></thead>
     	<tbody>
       {this.props.players.map((player, idx) => (
-        <tr key={player.id}>
+        <tr key={player.id} className={player.games_played == 0 ? 'inactive' : ''}>
         	<th><Link to={`/players/${player.id}`}>{ this.getFancyName(player.name, idx) }</Link></th>
         	<td>{Math.round(player.elo)}</td>
         </tr>

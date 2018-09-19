@@ -4,7 +4,7 @@ import {loadPlayerDetail }from "../actions/index";
 import Loadable from 'react-loadable';
 
 const LoadableChart = Loadable({
-  loader: () => import('react-plotly.js'),
+  loader: () => import( /* webpackPrefetch: true */ 'react-plotly.js'),
   loading: () => <div>Loading...</div>,
 });
 

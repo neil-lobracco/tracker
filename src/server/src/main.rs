@@ -15,7 +15,7 @@ use self::interface_types::*;
 use self::models::*;
 use self::schema::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use rocket::http::Status;
+use rocket::http::{Cookie, Status};
 use rocket::request::{self, FromRequest};
 use rocket::{Outcome, Request, State};
 use rocket_contrib::Json;
@@ -23,6 +23,7 @@ use std::ops::Deref;
 
 static K_win_loss: f64 = 25.0;
 static K_scored: f64 = 40.0;
+static LEAGUE_COOKIE_NAME: &'static str = "League-Id";
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -52,10 +53,38 @@ impl Deref for DbConn {
     }
 }
 
+pub struct LeagueId(i32);
+impl<'a, 'r> FromRequest<'a, 'r> for LeagueId {
+    type Error = ();
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+        let mut cookies = request.cookies();
+        let from_cookie = match cookies.get(LEAGUE_COOKIE_NAME) {
+            Some(cookie) => cookie.value().parse::<i32>().ok(),
+            None => None,
+        };
+        Outcome::Success(LeagueId(match from_cookie {
+            Some(league_id) => league_id,
+            None => {
+                cookies.remove(Cookie::named(LEAGUE_COOKIE_NAME));
+                cookies.add(Cookie::new(LEAGUE_COOKIE_NAME, "1"));
+                1
+            }
+        }))
+    }
+}
+
+impl Deref for LeagueId {
+    type Target = i32;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[get("/players")]
-fn get_players(conn: DbConn) -> QueryResult<Json<Vec<responses::Player>>> {
+fn get_players(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::Player>>> {
     let query = elo_entries::table
         .inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
+        .filter(players::league_id.eq(*league_id))
         .select((
             players::all_columns,
             diesel::dsl::sql::<diesel::sql_types::BigInt>("count(elo_entries.*)"),
@@ -78,11 +107,12 @@ fn get_players(conn: DbConn) -> QueryResult<Json<Vec<responses::Player>>> {
 fn create_player(
     conn: DbConn,
     player_json: Json<requests::CreatePlayer>,
+    league_id: LeagueId,
 ) -> Result<Json<responses::Player>, diesel::result::Error> {
     let create_player = player_json.into_inner();
     let new_player = NewPlayer {
         name: create_player.name,
-        league_id: 1,
+        league_id: *league_id,
         elo: 1500.0,
     };
     let player: Player = diesel::insert_into(players::table)
@@ -103,8 +133,9 @@ fn create_player(
 }
 
 #[get("/matches")]
-fn get_matches(conn: DbConn) -> QueryResult<Json<Vec<Match>>> {
+fn get_matches(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<Match>>> {
     matches::table
+        .filter(matches::league_id.eq(*league_id))
         .order_by(matches::created_at.desc())
         .load::<Match>(&*conn)
         .map(|ms| Json(ms))
@@ -130,12 +161,11 @@ fn get_elo_entries_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<
 }
 
 #[get("/elo_entries")]
-fn get_elo_entries(conn: DbConn) -> QueryResult<Json<Vec<EloEntry>>> {
-    let league_id = 1;
+fn get_elo_entries(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<EloEntry>>> {
     elo_entries::table
         .inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
         .select(elo_entries::all_columns)
-        .filter(players::league_id.eq(league_id))
+        .filter(players::league_id.eq(*league_id))
         .order_by(elo_entries::player_id.asc())
         .then_order_by(elo_entries::created_at.asc())
         .load::<EloEntry>(&*conn)
@@ -146,6 +176,7 @@ fn get_elo_entries(conn: DbConn) -> QueryResult<Json<Vec<EloEntry>>> {
 fn create_match(
     conn: DbConn,
     the_match_json: Json<requests::CreateMatch>,
+    league_id: LeagueId,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
     let player1: Player = players::table
@@ -174,7 +205,7 @@ fn create_match(
         player1_score: the_match.player1_score,
         player2_score: the_match.player2_score,
         comment: the_match.comment,
-        league_id: 1,
+        league_id: *league_id,
     };
     let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
         let created_match: Match = diesel::insert_into(matches::table)

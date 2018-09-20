@@ -10,7 +10,7 @@ const Container = () => (
   <div className='container'>
   	<div className='tabs is-large is-boxed'>
   		<ul>
-        <li><NavLink exact to='/' activeClassName='is-active'>Dashboard</NavLink></li>
+        <li><NavLink exact to='/' activeClassName='is-active'>Overview</NavLink></li>
   			<li><NavLink to='/players' activeClassName='is-active'>Players</NavLink></li>
   			<li><NavLink to='/matches' activeClassName='is-active'>Matches</NavLink></li>
   		</ul>

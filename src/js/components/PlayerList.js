@@ -15,7 +15,7 @@ class ConnectedList extends React.Component {
     return prefix + playerName;
   }
   render() {
-    return (
+    return this.props.players == null ? <div>Loading...</div> : (
     <table className="table">
     	<thead><tr><th>Player Name</th><th>Current Elo</th></tr></thead>
     	<tbody>

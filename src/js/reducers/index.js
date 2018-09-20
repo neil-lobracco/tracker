@@ -1,8 +1,10 @@
-import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL, INVALIDATE_PLAYER_DETAIL } from "../constants/action-types";
+import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
+ INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES } from "../constants/action-types";
 const initialState = {
-  players: [],
+  players: null,
   matches: [],
   playerDetail: {},
+  eloEntries : null,
 };
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -18,6 +20,8 @@ const rootReducer = (state = initialState, action) => {
       return {...state, playerDetail: {eloEntries: action.payload, playerId: action.playerId} };
      case INVALIDATE_PLAYER_DETAIL:
       return {...state, playerDetail: {}};
+     case RECEIVE_ELO_ENTRIES:
+      return {...state, eloEntries: action.payload };
     default:
       return state;
   }

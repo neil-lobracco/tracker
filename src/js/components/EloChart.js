@@ -61,7 +61,7 @@ class EloChart extends React.Component {
         x: [...xPoints, lastDate],
         y: [...xPoints.map(d => getLastBefore(entries, d)), entries[0].score],
         type: 'scatter',
-        line: {shape: 'hv'},
+        //line: {shape: 'hv'},
         mode: 'lines+markers',
         name : seriesName(k),
         //marker: { size: 4 },

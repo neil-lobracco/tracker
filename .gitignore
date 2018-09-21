@@ -59,3 +59,5 @@ typings/
 
 #rust stuff
 src/server/target/
+
+stats.json

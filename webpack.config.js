@@ -42,6 +42,9 @@ module.exports = {
             chunkFilename: "[id].css"
         })
     ],
+    output: {
+        filename: '[name]-[contenthash].js'
+    },
     optimization: {
         splitChunks: {
             chunks: 'all'

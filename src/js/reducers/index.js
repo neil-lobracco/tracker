@@ -5,6 +5,7 @@ const initialState = {
   matches: [],
   playerDetail: {},
   eloEntries : null,
+  leagueId: 1,
 };
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {

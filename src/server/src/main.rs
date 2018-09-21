@@ -15,15 +15,13 @@ use self::interface_types::*;
 use self::models::*;
 use self::schema::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use rocket::http::{Cookie, Status};
+use rocket::http::Status;
 use rocket::request::{self, FromRequest};
 use rocket::{Outcome, Request, State};
 use rocket_contrib::Json;
 use std::ops::Deref;
 
-static K_win_loss: f64 = 25.0;
-static K_scored: f64 = 40.0;
-static LEAGUE_COOKIE_NAME: &'static str = "League-Id";
+static LEAGUE_HEADER_NAME: &'static str = "League-Id";
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -57,19 +55,14 @@ pub struct LeagueId(i32);
 impl<'a, 'r> FromRequest<'a, 'r> for LeagueId {
     type Error = ();
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
-        let mut cookies = request.cookies();
-        let from_cookie = match cookies.get(LEAGUE_COOKIE_NAME) {
-            Some(cookie) => cookie.value().parse::<i32>().ok(),
-            None => None,
-        };
-        Outcome::Success(LeagueId(match from_cookie {
-            Some(league_id) => league_id,
-            None => {
-                cookies.remove(Cookie::named(LEAGUE_COOKIE_NAME));
-                cookies.add(Cookie::new(LEAGUE_COOKIE_NAME, "1"));
-                1
-            }
-        }))
+        match request
+            .headers()
+            .get_one(LEAGUE_HEADER_NAME)
+            .and_then(|val| val.parse::<i32>().ok())
+        {
+            Some(lid) => Outcome::Success(LeagueId(lid)),
+            None => Outcome::Success(LeagueId(1)), /*Outcome::Failure((Status::BadRequest, ())),*/
+        }
     }
 }
 
@@ -130,6 +123,26 @@ fn create_player(
         name: player.name,
         games_played: 0,
     }))
+}
+
+#[get("/leagues")]
+fn get_leagues(conn: DbConn) -> QueryResult<Json<Vec<responses::League>>> {
+    leagues::table
+        .inner_join(sports::table.on(leagues::sport_id.eq(sports::id)))
+        .select((leagues::all_columns, sports::name))
+        .load::<(League, String)>(&*conn)
+        .map(|tups| {
+            Json(
+                tups.into_iter()
+                    .map(|tup| responses::League {
+                        id: tup.0.id,
+                        name: tup.0.name,
+                        created_at: tup.0.created_at,
+                        sport_id: tup.0.sport_id,
+                        sport_name: tup.1,
+                    }).collect(),
+            )
+        })
 }
 
 #[get("/matches")]
@@ -237,9 +250,9 @@ fn create_match(
 
 fn get_k(score1: f64, score2: f64) -> f64 {
     if score1 + score2 == 1.0 {
-        K_win_loss
+        25.0
     } else {
-        K_scored
+        40.0
     }
 }
 
@@ -260,7 +273,8 @@ fn main() {
                 get_matches,
                 get_matches_for_player,
                 get_elo_entries_for_player,
-                get_elo_entries
+                get_elo_entries,
+                get_leagues
             ],
         ).launch();
 }

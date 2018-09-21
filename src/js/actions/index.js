@@ -8,24 +8,25 @@ export const receiveMatches = (matches) => ({ type: RECEIVE_MATCHES, payload: ma
 export const receivePlayerDetail = (playerId, playerDetail) => ({ type: RECEIVE_PLAYER_DETAIL, payload: playerDetail, playerId: playerId });
 export const receiveEloEntries = (entries) => ({type: RECEIVE_ELO_ENTRIES, payload: entries });
 
-const fetchJson = (url, options={}) => new Promise((resolve, reject) => {
+const fetchJson = (url, options={ headers: {}}, getState) => new Promise((resolve, reject) => {
+	options.headers['League-Id'] = getState().leagueId;
 	fetch(url, options).then(response => response.json(), err => reject(err))
 		.then(json => resolve(json), err => reject(err));
 });
 
-const postJson = (url, json) => fetchJson(url, {
+const postJson = (url, json, getState) => fetchJson(url, {
 		method: 'POST',
-		headers : {"Content-Type": "application/json; charset=utf-8", },
+		headers : {"Content-Type": "application/json; charset=utf-8"},
 		body: JSON.stringify(json),
-	});
-const simpleFetch = (url, success) => () => (dispatch) => fetchJson(url).then(success.bind(null,dispatch), err => console.error(err));
+	}, getState);
+const simpleFetch = (url, success) => () => (dispatch, getState) => fetchJson(url, undefined, getState).then(success.bind(null,dispatch), err => console.error(err));
 
 export const loadPlayers = simpleFetch('/api/players', (dispatch, json) => dispatch(receivePlayers(json)));
 export const loadMatches = simpleFetch('/api/matches', (dispatch, json) => dispatch(receiveMatches(json)));
 export const loadEloEntries = simpleFetch('/api/elo_entries', (dispatch, json) => dispatch(receiveEloEntries(json)));
 export const loadPlayerDetail = (playerId) => (dispatch) => fetchJson(`/api/players/${playerId}/elo_entries`).then(json => dispatch(receivePlayerDetail(playerId, json)), err => console.err(error));
-export const createPlayer = (player) => (dispatch) => postJson('/api/players', player).then(json => dispatch(addPlayer(json)), err => console.error(err));
-export const createMatch = (match) => (dispatch) => postJson('/api/matches', match).then(json => {
+export const createPlayer = (player) => (dispatch, getState) => postJson('/api/players', player, getState).then(json => dispatch(addPlayer(json)), err => console.error(err));
+export const createMatch = (match) => (dispatch, getState) => postJson('/api/matches', match, getState).then(json => {
 	dispatch(addMatch(json));
 	dispatch(invalidatePlayerDetail())
 	dispatch(loadPlayers());

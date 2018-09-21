@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import moment from 'moment';
 
 const getMatchDescription = (match, players) => {
-  if (players.length == 0) { return ''; }
+  if (!players || players.length == 0) { return ''; }
   const player1_name = players.find(p => p.id == match.player1_id).name;
   const player2_name = players.find(p => p.id == match.player2_id).name;
   if (match.player1_score == match.player2_score) { return `${player1_name} drew against ${player2_name}`; }

@@ -6,6 +6,15 @@ pub mod responses {
         pub elo: f64,
         pub games_played: i64,
     }
+    #[derive(Serialize)]
+    pub struct League {
+        pub id: i32,
+        pub name: String,
+
+        pub created_at: chrono::DateTime<chrono::prelude::Utc>,
+        pub sport_id: i32,
+        pub sport_name: String,
+    }
 
 }
 

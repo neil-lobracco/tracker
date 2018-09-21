@@ -37,8 +37,8 @@ class EloChart extends React.Component {
 
   getMultiSeriesData(idToEntries) {
     for (var prop in idToEntries) {
-      if (idToEntries[prop].length == 0) {
-        idToEntries.delete(prop);
+      if (idToEntries[prop].length < 2) {
+        delete idToEntries[prop];
       } else {
         idToEntries[prop].reverse();
       }
@@ -64,6 +64,8 @@ class EloChart extends React.Component {
         line: {shape: 'hv'},
         mode: 'lines+markers',
         name : seriesName(k),
+        //marker: { size: 4 },
+        //line: {width: 1 },
       };
     });
     return series;
@@ -87,8 +89,8 @@ class EloChart extends React.Component {
 
   getChartLayout(singleSeries) {
     return {
-      width: '70%',
-      height: '70%',
+      width: this.props.width,
+      height: this.props.height,
       title: this.props.title || (singleSeries && this.getChartTitle()),
       yaxis : { title: 'Elo rating' },
       xaxis : { title: singleSeries ? 'Games played' : 'Time'},

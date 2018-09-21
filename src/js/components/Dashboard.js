@@ -9,10 +9,10 @@ const mapStateToProps = state => {
 
 const Dashboard = ({eloEntries}) => (
 	<div className="dashboard columns">
-		<div className="column">
+		<div className="column is-one-third">
 			<PlayerList />
 		</div>
-		<div className="column">
+		<div className="column is-two-thirds">
 			<EloChart entries={eloEntries} title='Rating History of all players' />
 		</div>
 	</div>

@@ -21,7 +21,7 @@ const rootReducer = (state = initialState, action) => {
      case INVALIDATE_PLAYER_DETAIL:
       return {...state, playerDetail: {}};
      case RECEIVE_ELO_ENTRIES:
-      return {...state, eloEntries: action.payload };
+      return {...state, eloEntries: action.payload.map(e => { e.created_at = new Date(e.created_at); return e; }) };
     default:
       return state;
   }

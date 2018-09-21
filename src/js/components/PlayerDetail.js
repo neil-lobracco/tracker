@@ -12,6 +12,6 @@ const getEntriesFor = (playerId, entries) => {
 };
 
 const PlayerDetail = ( { match, eloEntries }) => 
-    <EloChart title='Elo rating over time' entries={getEntriesFor(match.params.playerId, eloEntries)} />;
+    <EloChart playerId={match.params.playerId} entries={getEntriesFor(match.params.playerId, eloEntries)} />;
 
 export default connect(mapStateToProps)(PlayerDetail);

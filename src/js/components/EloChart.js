@@ -53,7 +53,6 @@ class EloChart extends React.Component {
       let cloned = new Date(currentDataPoint.getTime());
       currentDataPoint = new Date(cloned.setDate(cloned.getDate() + 1));
     }
-    xPoints.push(lastDate);
     const seriesName = (playerId) => this.getPlayerName(playerId);
     const getLastBefore = (entries, d) => { const e = entries.find(e => e.created_at < d); return e && e.score; } ; //sorted by player then created_at
     const series = Object.entries(idToEntries).map(([k, entries]) => {

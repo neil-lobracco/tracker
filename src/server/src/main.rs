@@ -22,6 +22,7 @@ use rocket_contrib::Json;
 use std::ops::Deref;
 
 static LEAGUE_HEADER_NAME: &'static str = "League-Id";
+static  ACCESS_CODE_HEADER_NAME: &'static str = "Access-Code";
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -73,6 +74,42 @@ impl Deref for LeagueId {
     }
 }
 
+
+pub struct AccessCode(String);
+impl<'a, 'r> FromRequest<'a, 'r> for AccessCode {
+    type Error = ();
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+        let provided_code = match request
+            .headers()
+            .get_one(ACCESS_CODE_HEADER_NAME)
+        {
+            Some(code) => code,
+            None => return Outcome::Failure((Status::BadRequest, ())),
+        };
+        let conn = match request.guard::<DbConn>() {
+            Outcome::Success(c) => c,
+            _ => return Outcome::Failure((Status::ServiceUnavailable, ())),
+        };
+        let league_id = match request.guard::<LeagueId>() {
+            Outcome::Success(lid) => lid,
+            _ => return Outcome::Failure((Status::BadRequest, ())),
+        };
+        match access_codes::table.filter(access_codes::league_id.eq(*league_id))
+            .filter(access_codes::code.eq(provided_code)).count().get_result(&*conn) {
+                Ok(1) => Outcome::Success(AccessCode(provided_code.to_string())),
+                Ok(0) => Outcome::Failure((Status::BadRequest, ())),
+                _ => Outcome::Failure((Status::ServiceUnavailable, ())),
+        }
+    }
+}
+
+impl Deref for AccessCode {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[get("/players")]
 fn get_players(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::Player>>> {
     let query = elo_entries::table
@@ -101,6 +138,7 @@ fn create_player(
     conn: DbConn,
     player_json: Json<requests::CreatePlayer>,
     league_id: LeagueId,
+    _access_code: AccessCode,
 ) -> Result<Json<responses::Player>, diesel::result::Error> {
     let create_player = player_json.into_inner();
     let new_player = NewPlayer {
@@ -190,6 +228,7 @@ fn create_match(
     conn: DbConn,
     the_match_json: Json<requests::CreateMatch>,
     league_id: LeagueId,
+    _access_code: AccessCode,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
     let player1: Player = players::table

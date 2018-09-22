@@ -3,6 +3,15 @@ use super::schema::leagues;
 use super::schema::matches;
 use super::schema::players;
 use super::schema::sports;
+use super::schema::access_codes;
+
+#[derive(Queryable, Associations)]
+#[belongs_to(League)]
+pub struct AccessCode {
+    pub id: i32,
+    pub code: String,
+    pub league_id: i32,
+}
 
 #[derive(Queryable)]
 pub struct Sport {

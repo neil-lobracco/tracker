@@ -1,4 +1,12 @@
 table! {
+    access_codes (id) {
+        id -> Int4,
+        code -> Varchar,
+        league_id -> Int4,
+    }
+}
+
+table! {
     elo_entries (id) {
         id -> Int4,
         score -> Float8,
@@ -46,4 +54,11 @@ table! {
     }
 }
 
-allow_tables_to_appear_in_same_query!(elo_entries, leagues, matches, players, sports,);
+allow_tables_to_appear_in_same_query!(
+    access_codes,
+    elo_entries,
+    leagues,
+    matches,
+    players,
+    sports,
+);

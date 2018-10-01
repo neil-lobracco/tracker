@@ -14,8 +14,12 @@ const mapStateToProps = state => {
 
 class EloChart extends React.Component {
 
-  hasData() {
+  hasDataLoaded() {
     return this.props.entries != null && this.props.players != null;
+  }
+
+  hasData() {
+    return this.props.entries.length > 0 != null && this.props.players.length > 0;
   }
 
   getPlayerName(playerId) {
@@ -97,11 +101,14 @@ class EloChart extends React.Component {
   }
 
   render() {
-    if (this.hasData()) {
-      const chartInfo = this.getChartInfo();
-      return <LoadableChart data={chartInfo.data} layout={ chartInfo.layout } />
-    } else {
+    if (!this.hasDataLoaded()) {
       return <div>Loading...</div>;
+    } else if (!this.hasData()) {
+      return <div>No data available yet</div>
+
+    } else {
+      const chartInfo = this.getChartInfo();
+      return <LoadableChart data={chartInfo.data} layout={ chartInfo.layout } />;
     }
   }
 }

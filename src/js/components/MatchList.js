@@ -19,6 +19,7 @@ const mapStateToProps = state => {
   return { matches: state.matches, players: state.players };
 };
 const ConnectedList = ({ matches, players }) => (
+  matches != null &&
   <table className="table">
   	<thead><tr><th>Time</th><th>Outcome</th><th>Score</th><th>Comment</th></tr></thead>
   	<tbody>

@@ -20,3 +20,30 @@ input[type="radio"] {
 tr.inactive {
 	opacity: 0.3;
 }
+
+.league {
+	cursor: pointer;
+	margin: 15px;
+}
+
+.league span {
+	padding: 5px;
+	border: 1px solid;
+}
+
+.league.active span {
+	background-color: lightgreen;
+}
+
+.league:hover span {
+	background-color: lightblue;
+}
+.leagues-widget {
+	float: right;
+}
+.leagues-widget span {
+	margin-right: 8px;
+}
+.hidden {
+	display: none;
+}

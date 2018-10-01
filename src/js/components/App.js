@@ -1,13 +1,18 @@
 import React from "react";
 import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
+import LeagueRequiredRoute from './LeagueRequiredRoute';
 import Players from "./Players";
 import PlayerDetail from "./PlayerDetail";
 import Dashboard from "./Dashboard";
 import Matches from "./Matches";
+import LeagueSelector from "./LeagueSelector";
+import LeagueWidget from "./LeagueWidget";
 import 'bulma/css/bulma.css';
 import '../../main.css';
+
 const Container = () => (
   <div className='container'>
+    <LeagueWidget/>
   	<div className='tabs is-large is-boxed'>
   		<ul>
         <li><NavLink exact to='/' activeClassName='is-active'>Overview</NavLink></li>
@@ -16,10 +21,11 @@ const Container = () => (
   		</ul>
   	</div>
   	<Switch>
-  		<Route exact path='/players' component={Players}/>
-  		<Route path='/players/:playerId' component={PlayerDetail}/>
-  		<Route path='/matches' component={Matches}/>
-      <Route exact path='/' component={Dashboard}/>
+  		<LeagueRequiredRoute exact path='/players' component={Players}/>
+  		<LeagueRequiredRoute path='/players/:playerId' component={PlayerDetail}/>
+  		<LeagueRequiredRoute path='/matches' component={Matches}/>
+      <LeagueRequiredRoute exact path='/' component={Dashboard}/>
+      <Route path='/leagues' component={LeagueSelector}/>
 	  </Switch>
   </div>
 );

@@ -1,11 +1,12 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
- INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES } from "../constants/action-types";
+ INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES } from "../constants/action-types";
 const initialState = {
   players: null,
-  matches: [],
-  playerDetail: {},
+  matches: null,
+  playerDetail: null,
   eloEntries : null,
-  leagueId: 1,
+  leagueId: null,
+  leagues: null,
 };
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -21,6 +22,10 @@ const rootReducer = (state = initialState, action) => {
       return {...state, playerDetail: {eloEntries: action.payload, playerId: action.playerId} };
      case INVALIDATE_PLAYER_DETAIL:
       return {...state, playerDetail: {}};
+     case SET_LEAGUE:
+      return { leagues: state.leagues, leagueId: action.payload };
+     case RECEIVE_LEAGUES:
+      return { ...state, leagues: action.payload };
      case RECEIVE_ELO_ENTRIES:
       return {...state, eloEntries: action.payload.map(e => { e.created_at = new Date(e.created_at); return e; }) };
     default:

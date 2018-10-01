@@ -97,7 +97,7 @@ class ConnectedForm extends Component {
         <div className='columns'>
           <div className="select is-multiple column">
             <select multiple id="players" onChange={this.playersSelected.bind(this)}>
-            {(this.props.players || []).map(player => (
+            {(this.props.players || []).filter(p => p.id).map(player => (
               <option key={player.id} value={player.id}>{player.name}</option>
             ))}
             </select>

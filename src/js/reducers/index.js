@@ -8,12 +8,13 @@ const initialState = {
   leagueId: null,
   leagues: null,
 };
+const inject_extras = (players) => [...players, {name: 'Angela and Sreenath', elo: -99999, games_played: 0}];
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
     case ADD_PLAYER:
       return { ...state, players: [...state.players, action.payload].sort((p1, p2) => p2.elo - p1.elo) };
      case RECEIVE_PLAYERS:
-      return { ...state, players: action.payload };
+      return { ...state, players: inject_extras(action.payload) };
      case RECEIVE_MATCHES:
       return { ...state, matches: action.payload };
      case ADD_MATCH:

@@ -19,7 +19,7 @@ class EloChart extends React.Component {
   }
 
   hasData() {
-    return this.props.entries.length > 0 != null && this.props.players.length > 0;
+    return this.props.entries.length > 0 && this.props.players.length > 0;
   }
 
   getPlayerName(playerId) {

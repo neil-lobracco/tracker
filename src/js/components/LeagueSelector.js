@@ -15,11 +15,6 @@ class LeagueSelector extends React.Component {
 	leaguesLoaded() {
 		return this.props.leagues != null;
 	}
-	componentWillMount() {
-		if (!this.leaguesLoaded()) {
-			this.props.loadLeagues();
-		}
-	}
 	selectLeague(leagueId) {
 		this.props.setLeague(leagueId);
 		const locState = this.props.location.state;

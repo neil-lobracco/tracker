@@ -232,10 +232,10 @@ fn create_match(
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
     let player1: Player = players::table
-        .filter(players::id.eq(the_match.player1_id))
+        .filter(players::id.eq(the_match.player1_id).and(players::league_id.eq(*league_id)))
         .first::<Player>(&*conn)?;
     let player2: Player = players::table
-        .filter(players::id.eq(the_match.player2_id))
+        .filter(players::id.eq(the_match.player2_id).and(players::league_id.eq(*league_id)))
         .first::<Player>(&*conn)?;
     let r1 = player1.elo;
     let r2 = player2.elo;

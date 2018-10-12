@@ -37,7 +37,7 @@ class ConnectedForm extends Component {
       player2_score: scores[1],
       comment: this.state.comment == '' ? null : this.state.comment,
     }, this.state.code);
-    this.setState(initialState);
+    this.setState({ winner: null, comment: '', score: ''});
   }
 
   playersSelected(event) {

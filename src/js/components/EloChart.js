@@ -83,7 +83,7 @@ class EloChart extends React.Component {
     const otherPlayerId = isPlayer1 ? match.player2_id : match.player1_id;
     const otherPlayerName = this.props.players.find(p => p.id == otherPlayerId).name;
     const relativeScore = (match.player1_score - match.player2_score) * (isPlayer1 ? 1 : -1);
-    const scoreStr = (match.player1_score + match.player2_score == 1) ? '' : ` ${[match.player1_score, match.player2_score].sort().join('-')}`;
+    const scoreStr = (match.player1_score + match.player2_score == 1) ? '' : ` ${[match.player1_score, match.player2_score].sort().reverse().join('-')}`;
     if (relativeScore > 0){
       return `Beat ${otherPlayerName}${scoreStr}`;
     } else if (relativeScore == 0) {

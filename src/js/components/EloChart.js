@@ -9,17 +9,17 @@ const LoadableChart = Loadable({
 });
 
 const mapStateToProps = state => {
-  return { players: state.players };
+  return { players: state.players, matches: state.matches };
 };
 
 class EloChart extends React.Component {
 
   hasDataLoaded() {
-    return this.props.entries != null && this.props.players != null;
+    return this.props.entries != null && this.props.players != null && this.props.matches != null;
   }
 
   hasData() {
-    return this.props.entries.length > 0 && this.props.players.length > 0;
+    return this.props.entries.length > 0 && this.props.players.length > 0 && this.props.matches.length > 0;
   }
 
   getPlayerName(playerId) {
@@ -74,10 +74,30 @@ class EloChart extends React.Component {
     return series;
   }
 
+  getMatchDescription(entry) {
+    if (entry.match_id == null) {
+      return 'Initial rating';
+    }
+    const match = this.props.matches.find(m => m.id == entry.match_id);
+    const isPlayer1 = this.props.playerId == match.player1_id;
+    const otherPlayerId = isPlayer1 ? match.player2_id : match.player1_id;
+    const otherPlayerName = this.props.players.find(p => p.id == otherPlayerId).name;
+    const relativeScore = (match.player1_score - match.player2_score) * (isPlayer1 ? 1 : -1);
+    const scoreStr = (match.player1_score + match.player2_score == 1) ? '' : ` ${[match.player1_score, match.player2_score].sort().join('-')}`;
+    if (relativeScore > 0){
+      return `Beat ${otherPlayerName}${scoreStr}`;
+    } else if (relativeScore == 0) {
+      return `Drew${scoreStr} against ${otherPlayerName}`;
+    } else if (relativeScore < 0) {
+      return `Lost${scoreStr} to ${otherPlayerName}`;
+    }
+  }
+
   getSingleSeriesData() {
     const series = [{
         x: this.props.entries.map( ((e,idx) => idx)),
         y: this.props.entries.map(e => e.score),
+        text: this.props.entries.map(this.getMatchDescription.bind(this)),
         type: 'scatter',
         line: {shape: 'hv'},
         mode: 'lines+markers',

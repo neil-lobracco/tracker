@@ -12,3 +12,11 @@ serde = "1.0"
 serde_derive = "1.0"
 diesel = { version = "<= 1.2", features = ["postgres", "r2d2", "chrono"] }
 chrono = { version = "0.4.6", features = ["serde"] }
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[[bin]]
+name = "rebuild_entries"
+path = "src/rebuild_entries.rs"

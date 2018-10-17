@@ -10,6 +10,7 @@ use diesel::pg::PgConnection;
 pub mod interface_types;
 pub mod models;
 pub mod schema;
+mod scoring;
 use self::diesel::prelude::*;
 use self::interface_types::*;
 use self::models::*;
@@ -237,20 +238,7 @@ fn create_match(
     let player2: Player = players::table
         .filter(players::id.eq(the_match.player2_id).and(players::league_id.eq(*league_id)))
         .first::<Player>(&*conn)?;
-    let r1 = player1.elo;
-    let r2 = player2.elo;
-    let e1 = 1_f64 / (1_f64 + (10_f64.powf((r2 - r1) / 400_f64)));
-    let e2 = 1_f64 - e1;
-    let (s1, s2) = normalize_scores(the_match.player1_score, the_match.player2_score);
-    println!(
-        "Expected players to score {},{} but actually scored {}, {}",
-        e1, e2, s1, s2
-    );
-    let K = get_k(the_match.player1_score, the_match.player2_score);
-    println!("Using k={}", K);
-    let r1p = r1 + (K * (s1 - e1));
-    let r2p = r2 + (K * (s2 - e2));
-    println!("Adjusting scores from {}, {} to {}, {}", r1, r2, r1p, r2p);
+
     let new_match = NewMatch {
         player1_id: the_match.player1_id,
         player2_id: the_match.player2_id,
@@ -259,6 +247,7 @@ fn create_match(
         comment: the_match.comment,
         league_id: *league_id,
     };
+    let (r1p, r2p) = scoring::get_new_scores(player1.elo, player2.elo, the_match.player1_score, the_match.player2_score);
     let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
         let created_match: Match = diesel::insert_into(matches::table)
             .values(&new_match)
@@ -285,19 +274,6 @@ fn create_match(
         Ok(created_match)
     })?;
     Ok(Json(created_match))
-}
-
-fn get_k(score1: f64, score2: f64) -> f64 {
-    if score1 + score2 == 1.0 {
-        25.0
-    } else {
-        40.0
-    }
-}
-
-fn normalize_scores(p1score: f64, p2score: f64) -> (f64, f64) {
-    let sum = p1score + p2score;
-    (p1score / sum, p2score / sum)
 }
 
 fn main() {

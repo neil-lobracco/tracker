@@ -74,22 +74,34 @@ class EloChart extends React.Component {
     return series;
   }
 
-  getMatchDescription(entry) {
+  getMatchDescriptions(entries) {
+    let prior = null;
+    return entries.map(entry => {
+      const result = this.getMatchDescription(entry, prior);
+      prior = entry;
+      return result;
+    });
+  }
+
+  getMatchDescription(entry, prior) {
     if (entry.match_id == null) {
       return 'Initial rating';
     }
     const match = this.props.matches.find(m => m.id == entry.match_id);
+    if (match == null) { return null; }
     const isPlayer1 = this.props.playerId == match.player1_id;
     const otherPlayerId = isPlayer1 ? match.player2_id : match.player1_id;
     const otherPlayerName = this.props.players.find(p => p.id == otherPlayerId).name;
     const relativeScore = (match.player1_score - match.player2_score) * (isPlayer1 ? 1 : -1);
     const scoreStr = (match.player1_score + match.player2_score == 1) ? '' : ` ${[match.player1_score, match.player2_score].sort().reverse().join('-')}`;
+    const eloChange = Math.round((entry.score - prior.score) * 10) / 10;
+    const eloDescription = eloChange > 0 ? `Rating increased ${eloChange} points` : `Rating dropped ${0-eloChange} points`;
     if (relativeScore > 0){
-      return `Beat ${otherPlayerName}${scoreStr}`;
+      return `Beat ${otherPlayerName}${scoreStr} (${eloDescription})`;
     } else if (relativeScore == 0) {
-      return `Drew${scoreStr} against ${otherPlayerName}`;
+      return `Drew${scoreStr} against ${otherPlayerName} (${eloDescription})`;
     } else if (relativeScore < 0) {
-      return `Lost${scoreStr} to ${otherPlayerName}`;
+      return `Lost${scoreStr} to ${otherPlayerName} (${eloDescription})`;
     }
   }
 
@@ -97,7 +109,7 @@ class EloChart extends React.Component {
     const series = [{
         x: this.props.entries.map( ((e,idx) => idx)),
         y: this.props.entries.map(e => e.score),
-        text: this.props.entries.map(this.getMatchDescription.bind(this)),
+        text: this.getMatchDescriptions(this.props.entries),
         type: 'scatter',
         line: {shape: 'hv'},
         mode: 'lines+markers',

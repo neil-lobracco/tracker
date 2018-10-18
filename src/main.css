@@ -21,6 +21,10 @@ tr.inactive {
 	opacity: 0.3;
 }
 
+.js-plotly-plot {
+	width: 100%;
+}
+
 .league {
 	cursor: pointer;
 	margin: 15px;

@@ -1,5 +1,5 @@
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
+#[macro_use]
 extern crate rocket;
 #[macro_use]
 extern crate diesel;
@@ -19,7 +19,7 @@ use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use rocket::http::Status;
 use rocket::request::{self, FromRequest};
 use rocket::{Outcome, Request, State};
-use rocket_contrib::Json;
+use rocket_contrib::json::Json;
 use std::ops::Deref;
 
 static LEAGUE_HEADER_NAME: &'static str = "League-Id";

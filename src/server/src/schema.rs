@@ -12,7 +12,17 @@ table! {
         score -> Float8,
         created_at -> Timestamptz,
         match_id -> Nullable<Int4>,
+        league_membership_id -> Int4,
+    }
+}
+
+table! {
+    league_memberships (id) {
+        id -> Int4,
+        created_at -> Timestamptz,
+        role -> Varchar,
         player_id -> Int4,
+        league_id -> Int4,
     }
 }
 
@@ -42,8 +52,6 @@ table! {
     players (id) {
         id -> Int4,
         name -> Varchar,
-        elo -> Float8,
-        league_id -> Int4,
     }
 }
 
@@ -54,9 +62,14 @@ table! {
     }
 }
 
+joinable!(elo_entries -> league_memberships (league_membership_id));
+joinable!(league_memberships -> leagues (league_id));
+joinable!(league_memberships -> players (player_id));
+
 allow_tables_to_appear_in_same_query!(
     access_codes,
     elo_entries,
+    league_memberships,
     leagues,
     matches,
     players,

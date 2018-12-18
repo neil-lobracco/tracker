@@ -1,8 +1,10 @@
+#![allow(proc_macro_derive_resolution_fallback)]
+
 use super::schema::elo_entries;
 use super::schema::leagues;
 use super::schema::matches;
 use super::schema::players;
-use super::schema::sports;
+use super::schema::league_memberships;
 use super::schema::access_codes;
 
 #[derive(Queryable, Associations)]
@@ -28,21 +30,36 @@ pub struct League {
     pub sport_id: i32,
 }
 
-#[derive(Queryable, Serialize, Identifiable, Associations)]
-#[belongs_to(League)]
+#[derive(Queryable, Identifiable)]
 pub struct Player {
     pub id: i32,
     pub name: String,
-    pub elo: f64,
-    pub league_id: i32,
 }
 
 #[derive(Insertable)]
 #[table_name = "players"]
 pub struct NewPlayer {
     pub name: String,
-    pub elo: f64,
+}
+
+#[derive(Queryable, Associations)]
+#[table_name = "league_memberships"]
+#[belongs_to(Player)]
+#[belongs_to(League)]
+pub struct LeagueMembership {
+    pub id: i32,
+    pub created_at: chrono::DateTime<chrono::prelude::Utc>,
+    pub role: String,
+    pub player_id: i32,
     pub league_id: i32,
+}
+
+#[derive(Insertable)]
+#[table_name = "league_memberships"]
+pub struct NewLeagueMembership {
+    pub role: String,
+    pub league_id: i32,
+    pub player_id: i32,
 }
 
 #[derive(Queryable, Serialize, Associations)]
@@ -70,21 +87,30 @@ pub struct NewMatch {
     pub league_id: i32,
 }
 
-#[derive(Queryable, Serialize, Associations)]
-#[belongs_to(Player)]
+#[derive(Queryable, Associations)]
+#[belongs_to(LeagueMembership)]
 #[table_name = "elo_entries"]
 pub struct EloEntry {
     pub id: i32,
     pub score: f64,
     pub created_at: chrono::DateTime<chrono::prelude::Utc>,
     pub match_id: Option<i32>,
-    pub player_id: i32,
+    pub league_membership_id: i32,
 }
 
 #[derive(Insertable)]
 #[table_name = "elo_entries"]
 pub struct NewEloEntry {
     pub score: f64,
-    pub player_id: i32,
+    pub league_membership_id: i32,
     pub match_id: Option<i32>,
+}
+
+use diesel::sql_types::{Integer, Double};
+#[derive(QueryableByName)]
+pub struct CurrentEloScore {
+    #[sql_type="Integer"]
+    pub player_id: i32,
+    #[sql_type="Double"]
+    pub score: f64,
 }

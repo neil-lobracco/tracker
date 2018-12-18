@@ -111,27 +111,38 @@ impl Deref for AccessCode {
     }
 }
 
+fn fetch_current_elo(conn: &DbConn, player_ids: &[i32]) -> std::collections::HashMap<i32, f64> {
+    let mut m = std::collections::HashMap::new();
+    let query = diesel::sql_query(include_str!("fetch_current_elo.sql")).bind::<diesel::sql_types::Array<diesel::sql_types::Int4>, _>(player_ids);
+    let res: Vec<CurrentEloScore> = query.get_results(&**conn).unwrap();
+    for ces in res {
+        m.insert(ces.player_id, ces.score);
+    }
+    m
+}
+
 #[get("/players")]
 fn get_players(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::Player>>> {
-    let query = elo_entries::table
-        .inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
-        .filter(players::league_id.eq(*league_id))
+    let players_and_counts = elo_entries::table
+        .inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
+        .inner_join(players::table.on(players::id.eq(league_memberships::player_id)))
+        .filter(league_memberships::league_id.eq(*league_id))
         .select((
             players::all_columns,
             diesel::dsl::sql::<diesel::sql_types::BigInt>("count(elo_entries.*)"),
         )).group_by(players::id)
-        .order_by(players::elo.desc());
-    query.load::<(Player, i64)>(&*conn).map(|tups| {
-        Json(
-            tups.into_iter()
-                .map(|tup| responses::Player {
-                    id: tup.0.id,
-                    elo: tup.0.elo,
-                    name: tup.0.name,
-                    games_played: tup.1 - 1,
-                }).collect(),
-        )
-    })
+        .load::<(Player, i64)>(&*conn)?;
+    let elo_scores = fetch_current_elo(&conn, &players_and_counts.iter().map(|pandc| pandc.0.id).collect::<Vec<i32>>());
+    let mut result: Vec<responses::Player> = players_and_counts.iter().map(|tup| {
+        responses::Player {
+            id: tup.0.id,
+            elo: *elo_scores.get(&tup.0.id).unwrap(),
+            name: tup.0.name.to_string(),
+            games_played: tup.1 - 1,
+        }
+    }).collect();
+    result.sort_unstable_by(|a,b| b.elo.partial_cmp(&a.elo).unwrap_or(std::cmp::Ordering::Equal));
+    Ok(Json(result))
 }
 
 #[post("/players", data = "<player_json>")]
@@ -144,21 +155,28 @@ fn create_player(
     let create_player = player_json.into_inner();
     let new_player = NewPlayer {
         name: create_player.name,
-        league_id: *league_id,
-        elo: 1500.0,
     };
-    let player: Player = diesel::insert_into(players::table)
-        .values(&new_player)
-        .get_result(&*conn)?;
-    diesel::insert_into(elo_entries::table)
-        .values(&NewEloEntry {
-            player_id: player.id,
-            match_id: None,
-            score: player.elo,
-        }).execute(&*conn)?;
+    let player = conn.transaction::<_, diesel::result::Error, _>(|| {
+        let player: Player = diesel::insert_into(players::table)
+            .values(&new_player)
+            .get_result(&*conn)?;
+        let lm: LeagueMembership = diesel::insert_into(league_memberships::table)
+            .values(&NewLeagueMembership {
+                role: "admin".to_string(),
+                player_id: player.id,
+                league_id: *league_id,
+            }).get_result(&*conn)?;
+        diesel::insert_into(elo_entries::table)
+            .values(&NewEloEntry {
+                league_membership_id: lm.id,
+                match_id: None,
+                score: 1500.0,
+            }).execute(&*conn)?;
+        Ok(player)
+    }).unwrap();
     Ok(Json(responses::Player {
         id: player.id,
-        elo: player.elo,
+        elo: 1500.0,
         name: player.name,
         games_played: 0,
     }))
@@ -204,24 +222,44 @@ fn get_matches_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<Vec<
 }
 
 #[get("/players/<player_id>/elo_entries")]
-fn get_elo_entries_for_player(conn: DbConn, player_id: i32) -> QueryResult<Json<Vec<EloEntry>>> {
+fn get_elo_entries_for_player(conn: DbConn, league_id: LeagueId, player_id: i32) -> QueryResult<Json<Vec<responses::EloEntry>>> {
     elo_entries::table
-        .filter(elo_entries::player_id.eq(player_id))
+        .inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
+        .filter(league_memberships::player_id.eq(player_id).and(league_memberships::league_id.eq(*league_id)))
         .order_by(elo_entries::created_at.asc())
+        .select(elo_entries::all_columns)
         .load::<EloEntry>(&*conn)
-        .map(|entries| Json(entries))
+        .map(|entries| {
+            Json( entries.iter().map(|entry|{
+                responses::EloEntry {
+                    player_id: player_id,
+                    match_id: entry.match_id,
+                    created_at: entry.created_at,
+                    score: entry.score,
+                }
+            }).collect())
+        })
 }
 
 #[get("/elo_entries")]
-fn get_elo_entries(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<EloEntry>>> {
+fn get_elo_entries(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::EloEntry>>> {
     elo_entries::table
-        .inner_join(players::table.on(players::id.eq(elo_entries::player_id)))
-        .select(elo_entries::all_columns)
-        .filter(players::league_id.eq(*league_id))
-        .order_by(elo_entries::player_id.asc())
+        .inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
+        .select((elo_entries::all_columns, league_memberships::player_id))
+        .filter(league_memberships::league_id.eq(*league_id))
+        .order_by(league_memberships::player_id.asc())
         .then_order_by(elo_entries::created_at.asc())
-        .load::<EloEntry>(&*conn)
-        .map(|entries| Json(entries))
+        .load::<(EloEntry, i32)>(&*conn)
+        .map(|entries| {
+            Json( entries.iter().map(|entry|{
+                responses::EloEntry {
+                    player_id: entry.1,
+                    match_id: entry.0.match_id,
+                    created_at: entry.0.created_at,
+                    score: entry.0.score,
+                }
+            }).collect())
+        })
 }
 
 #[post("/matches", data = "<the_match_json>")]
@@ -232,12 +270,16 @@ fn create_match(
     _access_code: AccessCode,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
-    let player1: Player = players::table
-        .filter(players::id.eq(the_match.player1_id).and(players::league_id.eq(*league_id)))
-        .first::<Player>(&*conn)?;
-    let player2: Player = players::table
-        .filter(players::id.eq(the_match.player2_id).and(players::league_id.eq(*league_id)))
-        .first::<Player>(&*conn)?;
+    let (player1, player1_lm_id) = players::table
+        .inner_join(league_memberships::table.on(league_memberships::player_id.eq(players::id)))
+        .filter(players::id.eq(the_match.player1_id))
+        .select((players::all_columns, league_memberships::id))
+        .first::<(Player, i32)>(&*conn)?;
+    let (player2, player2_lm_id) = players::table
+        .inner_join(league_memberships::table.on(league_memberships::player_id.eq(players::id)))
+        .filter(players::id.eq(the_match.player2_id))
+        .select((players::all_columns, league_memberships::id))
+        .first::<(Player, i32)>(&*conn)?;
 
     let new_match = NewMatch {
         player1_id: the_match.player1_id,
@@ -247,24 +289,20 @@ fn create_match(
         comment: the_match.comment,
         league_id: *league_id,
     };
-    let (r1p, r2p) = scoring::get_new_scores(player1.elo, player2.elo, the_match.player1_score, the_match.player2_score);
+    let current_elos = fetch_current_elo(&conn, &[the_match.player1_id, the_match.player2_id]);
+    let (p1_elo, p2_elo) = (current_elos.get(&the_match.player1_id).unwrap(), current_elos.get(&the_match.player2_id).unwrap());
+    let (r1p, r2p) = scoring::get_new_scores(*p1_elo, *p2_elo, the_match.player1_score, the_match.player2_score);
     let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
         let created_match: Match = diesel::insert_into(matches::table)
             .values(&new_match)
             .get_result(&*conn)?;
-        diesel::update(&player1)
-            .set(players::elo.eq(r1p))
-            .execute(&*conn)?;
-        diesel::update(&player2)
-            .set(players::elo.eq(r2p))
-            .execute(&*conn)?;
         let p1_elo_entry = NewEloEntry {
-            player_id: player1.id,
+            league_membership_id: player1_lm_id,
             score: r1p,
             match_id: Some(created_match.id),
         };
         let p2_elo_entry = NewEloEntry {
-            player_id: player2.id,
+            league_membership_id: player2_lm_id,
             score: r2p,
             match_id: Some(created_match.id),
         };

@@ -15,6 +15,13 @@ pub mod responses {
         pub sport_id: i32,
         pub sport_name: String,
     }
+    #[derive(Serialize)]
+    pub struct EloEntry {
+        pub created_at: chrono::DateTime<chrono::prelude::Utc>,
+        pub match_id: Option<i32>,
+        pub player_id: i32,
+        pub score: f64,
+    }
 
 }
 

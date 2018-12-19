@@ -16,14 +16,17 @@ use self::interface_types::*;
 use self::models::*;
 use self::schema::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use rocket::http::Status;
+use rocket::http::{Status, Cookies, Cookie};
 use rocket::request::{self, FromRequest};
+use rocket::response::status;
 use rocket::{Outcome, Request, State};
 use rocket_contrib::json::Json;
 use std::ops::Deref;
 
 static LEAGUE_HEADER_NAME: &'static str = "League-Id";
-static  ACCESS_CODE_HEADER_NAME: &'static str = "Access-Code";
+static ACCESS_CODE_HEADER_NAME: &'static str = "Access-Code";
+static AUTH_COOKIE: &'static str = "leaguetrack_auth";
+static GOOGLE_CLIENT_ID: &'static str = "985074612801-rir5ouc3r4e7kaq6u25j1c12bko24rqq.apps.googleusercontent.com";
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -314,6 +317,50 @@ fn create_match(
     Ok(Json(created_match))
 }
 
+#[get("/users/me")]
+fn whoami(conn: DbConn, mut cookies: Cookies) -> Result<Json<responses::User>, status::Custom<()>> {
+    match cookies.get_private(AUTH_COOKIE) {
+        Some(cookie) => {
+            let email = cookie.value();
+            match get_user(conn, &email) {
+                Ok(player) => Ok(Json(responses::User { id: player.id, email: player.email.unwrap(), name: player.name })),
+                Err(_) => {
+                    println!("Unusual! Got email for missing user {}", email);
+                    Err(status::Custom(rocket::http::Status::Unauthorized, ()))
+                }
+            }
+        },
+        None => Err(status::Custom(rocket::http::Status::Unauthorized, ()))
+    }
+}
+
+
+#[post("/users", data = "<ga>")]
+fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::GoogleAuth>) -> Result<Json<responses::User>, status::Custom<()>> {
+    let id_token = ga.into_inner().token;
+    println!("received google token {}", id_token);
+    let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
+        .unwrap().json().unwrap();
+    if token.email_verified && token.aud != GOOGLE_CLIENT_ID {
+        match get_user(conn, &token.email) {
+            Ok(player) => {
+                cookies.add_private(Cookie::new(AUTH_COOKIE, token.email));
+                Ok(Json(responses::User { id: player.id, email: player.email.unwrap(), name: player.name }))
+            },
+            Err(_) => {
+                println!("Unusual! Got email for missing user {}", token.email);
+                Err(status::Custom(rocket::http::Status::Unauthorized, ()))
+            }
+        }
+    } else {
+        Err(status::Custom(rocket::http::Status::Unauthorized, ()))
+    }
+}
+
+fn get_user(conn: DbConn, email: &str) -> Result<Player, diesel::result::Error> {
+    players::table.filter(players::email.eq(email)).first::<Player>(&*conn)
+}
+
 fn main() {
     rocket::ignite()
         .manage(init_pool())
@@ -327,7 +374,9 @@ fn main() {
                 get_matches_for_player,
                 get_elo_entries_for_player,
                 get_elo_entries,
-                get_leagues
+                get_leagues,
+                whoami,
+                login_or_register
             ],
         ).launch();
 }

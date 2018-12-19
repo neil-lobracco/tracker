@@ -22,6 +22,12 @@ pub mod responses {
         pub player_id: i32,
         pub score: f64,
     }
+    #[derive(Serialize)]
+    pub struct User {
+        pub id: i32,
+        pub email: String,
+        pub name: String,
+    }
 
 }
 
@@ -40,4 +46,18 @@ pub mod requests {
         pub player2_score: f64,
     }
 
+    #[derive(Deserialize)]
+    pub struct GoogleAuth {
+        pub token: String,
+    }
+
+}
+
+pub mod google {
+    #[derive(Deserialize)]
+    pub struct TokenResponse {
+        pub aud: String,
+        pub email: String,
+        pub email_verified: bool,
+    }
 }

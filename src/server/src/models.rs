@@ -34,6 +34,7 @@ pub struct League {
 pub struct Player {
     pub id: i32,
     pub name: String,
+    pub email: Option<String>,
 }
 
 #[derive(Insertable)]

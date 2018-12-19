@@ -10,6 +10,7 @@ serde = "1.0"
 serde_derive = "1.0"
 diesel = { version = "1.3.3", features = ["postgres", "r2d2", "chrono"] }
 chrono = { version = "0.4.6", features = ["serde"] }
+reqwest = "0.9.5"
 
 [dependencies.rocket_contrib]
 version = "*"

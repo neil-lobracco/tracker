@@ -9,6 +9,7 @@ import LeagueSelector from "./LeagueSelector";
 import LeagueWidget from "./LeagueWidget";
 import 'bulma/css/bulma.css';
 import '../../main.css';
+import GoogleLogin from "./GoogleLogin";
 
 const Container = () => (
   <div className='container'>
@@ -26,6 +27,7 @@ const Container = () => (
   		<LeagueRequiredRoute path='/matches' component={Matches}/>
       <LeagueRequiredRoute exact path='/' component={Dashboard}/>
       <Route path='/leagues' component={LeagueSelector}/>
+			<Route path='/login' component={GoogleLogin}/>
 	  </Switch>
   </div>
 );

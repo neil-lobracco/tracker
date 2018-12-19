@@ -1,5 +1,5 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
- INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES } from "../constants/action-types";
+ INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN } from "../constants/action-types";
 const initialState = {
   players: null,
   matches: null,
@@ -7,6 +7,7 @@ const initialState = {
   eloEntries : null,
   leagueId: null,
   leagues: null,
+  userContext: null,
 };
 const inject_extras = (players) => [...players, {name: 'Angela and Sreenath', elo: -99999, games_played: 0}];
 const rootReducer = (state = initialState, action) => {
@@ -29,6 +30,8 @@ const rootReducer = (state = initialState, action) => {
       return { ...state, leagues: action.payload };
      case RECEIVE_ELO_ENTRIES:
       return {...state, eloEntries: action.payload.map(e => { e.created_at = new Date(e.created_at); return e; }) };
+     case SIGN_IN:
+      return {...state, user: action.payload };
     default:
       return state;
   }

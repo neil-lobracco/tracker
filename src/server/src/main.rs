@@ -338,10 +338,9 @@ fn whoami(conn: DbConn, mut cookies: Cookies) -> Result<Json<responses::User>, s
 #[post("/users", data = "<ga>")]
 fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::GoogleAuth>) -> Result<Json<responses::User>, status::Custom<()>> {
     let id_token = ga.into_inner().token;
-    println!("received google token {}", id_token);
     let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
         .unwrap().json().unwrap();
-    if token.email_verified && token.aud != GOOGLE_CLIENT_ID {
+    if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
         match get_user(conn, &token.email) {
             Ok(player) => {
                 cookies.add_private(Cookie::new(AUTH_COOKIE, token.email));

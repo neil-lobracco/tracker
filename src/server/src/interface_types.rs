@@ -58,6 +58,6 @@ pub mod google {
     pub struct TokenResponse {
         pub aud: String,
         pub email: String,
-        pub email_verified: bool,
+        pub email_verified: String, //why, google?
     }
 }

@@ -106,7 +106,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for Admin {
             .select(players::all_columns)
             .first(&*conn) {
                 Ok(player) => Outcome::Success(Admin(player)),
-                //Ok(0) => Outcome::Failure((Status::BadRequest, ())),
                 _ => Outcome::Failure((Status::ServiceUnavailable, ())),
         }
     }
@@ -278,16 +277,14 @@ fn create_match(
     _admin: Admin,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
-    let (player1, player1_lm_id) = players::table
-        .inner_join(league_memberships::table.on(league_memberships::player_id.eq(players::id)))
-        .filter(players::id.eq(the_match.player1_id))
-        .select((players::all_columns, league_memberships::id))
-        .first::<(Player, i32)>(&*conn)?;
-    let (player2, player2_lm_id) = players::table
-        .inner_join(league_memberships::table.on(league_memberships::player_id.eq(players::id)))
-        .filter(players::id.eq(the_match.player2_id))
-        .select((players::all_columns, league_memberships::id))
-        .first::<(Player, i32)>(&*conn)?;
+    let player1_lm_id = league_memberships::table
+        .filter(league_memberships::player_id.eq(the_match.player1_id))
+        .select(league_memberships::id)
+        .first::<i32>(&*conn)?;
+    let player2_lm_id = league_memberships::table
+        .filter(league_memberships::player_id.eq(the_match.player2_id))
+        .select(league_memberships::id)
+        .first::<i32>(&*conn)?;
 
     let new_match = NewMatch {
         player1_id: the_match.player1_id,

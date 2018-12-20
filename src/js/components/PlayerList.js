@@ -2,17 +2,20 @@ import React from "react";
 import { connect } from "react-redux";
 import { Link } from 'react-router-dom';
 const mapStateToProps = state => {
-  return { players: state.players };
+  return { players: state.players, user: state.user };
 };
 class ConnectedList extends React.Component {
-  getFancyName(playerName, idx) {
+  getFancyName(player, idx) {
     let prefix = '';
     if (idx == 0) {
       prefix = '😁 ';
     } else if (idx == (this.props.players.length - 1)) {
       prefix = '😞 ';
     }
-    return prefix + playerName;
+    if (this.props.user && this.props.user.id == player.id) {
+      prefix += '☝️';
+    }
+    return prefix + player.name;
   }
   render() {
     return this.props.players == null ? <div>Loading...</div> : (
@@ -21,7 +24,7 @@ class ConnectedList extends React.Component {
     	<tbody>
       {this.props.players.map((player, idx) => (
         <tr key={player.id || 'unknown'} className={player.games_played == 0 ? 'inactive' : ''}>
-        	<th>{player.id ? <Link to={`/players/${player.id}`}>{ this.getFancyName(player.name, idx) }</Link> : this.getFancyName(player.name, idx)}</th>
+        	<th>{player.id ? <Link to={`/players/${player.id}`}>{ this.getFancyName(player, idx) }</Link> : this.getFancyName(player.name, idx)}</th>
         	<td>{Math.round(player.elo)}</td>
         </tr>
       ))}

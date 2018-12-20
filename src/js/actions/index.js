@@ -23,9 +23,9 @@ const fetchJson = (url, options={ headers: {}}, getState) => new Promise((resolv
 		.then(json => resolve(json), err => reject(err));
 });
 
-const postJson = (url, json, accessCode, getState) => fetchJson(url, {
+const postJson = (url, json, getState) => fetchJson(url, {
 		method: 'POST',
-		headers : {"Content-Type": "application/json; charset=utf-8", "Access-Code" : accessCode},
+		headers : {"Content-Type": "application/json; charset=utf-8" },
 		body: JSON.stringify(json),
 	}, getState);
 const simpleFetch = (url, success) => () => (dispatch, getState) => fetchJson(url, undefined, getState).then(success.bind(null,dispatch), err => console.error(err));
@@ -36,11 +36,11 @@ export const loadEloEntries = simpleFetch('/api/elo_entries', (dispatch, json) =
 export const loadLeagues = simpleFetch('/api/leagues', (dispatch, json) => dispatch(receiveLeagues(json)));
 export const loadUserContext = simpleFetch('/api/users/me', (dispatch, json) => dispatch(signIn(json)));
 export const loadPlayerDetail = (playerId) => (dispatch) => fetchJson(`/api/players/${playerId}/elo_entries`).then(json => dispatch(receivePlayerDetail(playerId, json)), err => console.err(error));
-export const createPlayer = (player, code) => (dispatch, getState) => postJson('/api/players', player, code, getState).then(json => dispatch(addPlayer(json)), err => console.error(err));
-export const createMatch = (match, code) => (dispatch, getState) => postJson('/api/matches', match, code, getState).then(json => {
+export const createPlayer = (player) => (dispatch, getState) => postJson('/api/players', player, getState).then(json => dispatch(addPlayer(json)), err => console.error(err));
+export const createMatch = (match) => (dispatch, getState) => postJson('/api/matches', match, getState).then(json => {
 	dispatch(addMatch(json));
 	dispatch(invalidatePlayerDetail())
 	dispatch(loadPlayers());
 	dispatch(loadEloEntries());
 }, err => console.error(err));
-export const googleAuth = (token) => (dispatch, getState) => postJson('/api/users', { token }, '', getState).then(json => dispatch(signIn(json)));
+export const googleAuth = (token) => (dispatch, getState) => postJson('/api/users', { token }, getState).then(json => dispatch(signIn(json)));

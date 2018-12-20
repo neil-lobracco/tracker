@@ -1,12 +1,4 @@
 table! {
-    access_codes (id) {
-        id -> Int4,
-        code -> Varchar,
-        league_id -> Int4,
-    }
-}
-
-table! {
     elo_entries (id) {
         id -> Int4,
         score -> Float8,
@@ -68,7 +60,6 @@ joinable!(league_memberships -> leagues (league_id));
 joinable!(league_memberships -> players (player_id));
 
 allow_tables_to_appear_in_same_query!(
-    access_codes,
     elo_entries,
     league_memberships,
     leagues,

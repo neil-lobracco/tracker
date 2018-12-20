@@ -24,8 +24,8 @@ use rocket_contrib::json::Json;
 use std::ops::Deref;
 
 static LEAGUE_HEADER_NAME: &'static str = "League-Id";
-static ACCESS_CODE_HEADER_NAME: &'static str = "Access-Code";
 static AUTH_COOKIE: &'static str = "leaguetrack_auth";
+static ADMIN_ROLE: &'static str = "admin";
 static GOOGLE_CLIENT_ID: &'static str = "985074612801-rir5ouc3r4e7kaq6u25j1c12bko24rqq.apps.googleusercontent.com";
 
 type PostgresPool = Pool<ConnectionManager<PgConnection>>;
@@ -79,15 +79,15 @@ impl Deref for LeagueId {
 }
 
 
-pub struct AccessCode(String);
-impl<'a, 'r> FromRequest<'a, 'r> for AccessCode {
+pub struct Admin(Player);
+impl<'a, 'r> FromRequest<'a, 'r> for Admin {
     type Error = ();
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
-        let provided_code = match request
-            .headers()
-            .get_one(ACCESS_CODE_HEADER_NAME)
+        let provided_email = match request
+            .cookies()
+            .get_private(AUTH_COOKIE)
         {
-            Some(code) => code,
+            Some(email_cookie) => email_cookie.value().to_string(),
             None => return Outcome::Failure((Status::BadRequest, ())),
         };
         let conn = match request.guard::<DbConn>() {
@@ -98,17 +98,22 @@ impl<'a, 'r> FromRequest<'a, 'r> for AccessCode {
             Outcome::Success(lid) => lid,
             _ => return Outcome::Failure((Status::BadRequest, ())),
         };
-        match access_codes::table.filter(access_codes::league_id.eq(*league_id))
-            .filter(access_codes::code.eq(provided_code)).count().get_result(&*conn) {
-                Ok(1) => Outcome::Success(AccessCode(provided_code.to_string())),
-                Ok(0) => Outcome::Failure((Status::BadRequest, ())),
+        match players::table
+            .inner_join(league_memberships::table.on(league_memberships::player_id.eq(players::id)))
+            .filter(league_memberships::league_id.eq(*league_id))
+            .filter(league_memberships::role.eq(ADMIN_ROLE))
+            .filter(players::email.eq(provided_email))
+            .select(players::all_columns)
+            .first(&*conn) {
+                Ok(player) => Outcome::Success(Admin(player)),
+                //Ok(0) => Outcome::Failure((Status::BadRequest, ())),
                 _ => Outcome::Failure((Status::ServiceUnavailable, ())),
         }
     }
 }
 
-impl Deref for AccessCode {
-    type Target = String;
+impl Deref for Admin {
+    type Target = Player;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -153,7 +158,7 @@ fn create_player(
     conn: DbConn,
     player_json: Json<requests::CreatePlayer>,
     league_id: LeagueId,
-    _access_code: AccessCode,
+    _admin: Admin,
 ) -> Result<Json<responses::Player>, diesel::result::Error> {
     let create_player = player_json.into_inner();
     let new_player = NewPlayer {
@@ -270,7 +275,7 @@ fn create_match(
     conn: DbConn,
     the_match_json: Json<requests::CreateMatch>,
     league_id: LeagueId,
-    _access_code: AccessCode,
+    _admin: Admin,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
     let (player1, player1_lm_id) = players::table

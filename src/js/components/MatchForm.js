@@ -7,12 +7,11 @@ const initialState = {
     winner: null,
     comment: '',
     score: '',
-    code: '',
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    createMatch: (match, code) => dispatch(createMatch(match, code))
+    createMatch: (match) => dispatch(createMatch(match))
   };
 };
 
@@ -36,7 +35,7 @@ class ConnectedForm extends Component {
       player1_score: scores[0],
       player2_score: scores[1],
       comment: this.state.comment == '' ? null : this.state.comment,
-    }, this.state.code);
+    });
     this.setState({ winner: null, comment: '', score: ''});
   }
 
@@ -51,10 +50,6 @@ class ConnectedForm extends Component {
     let comment = event.target.value;
     if (!comment || comment.trim() == '') { comment = null; }
     this.setState({ comment });
-  }
-
-  setCode(event) {
-    this.setState( { code: event.target.value });
   }
 
   getScores() {
@@ -91,7 +86,7 @@ class ConnectedForm extends Component {
   }
 
   render() {
-    const {contestants, winner, code } = this.state;
+    const {contestants, winner } = this.state;
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
         <div className='columns'>
@@ -134,11 +129,6 @@ class ConnectedForm extends Component {
           <div className='control'>
             <input className='input' name='comment' placeholder='A well fought match' onChange={this.setComment.bind(this)} value={this.state.comment}/>
           </div>
-        </div>
-        <div className="field">
-          <label htmlFor="code" className="label">Access Code</label>
-          <input type="password" className="input is-primary" id="code" placeholder="Access code provided to you by an administrator"
-            value={code} onChange={this.setCode.bind(this)} required='required' />
         </div>
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE

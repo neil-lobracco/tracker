@@ -5,12 +5,11 @@ import { createPlayer } from "../actions/index";
 const initialState = {
     name : '',
     elo : 1500,
-    code: '',
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    createPlayer: (player, code) => dispatch(createPlayer(player, code))
+    createPlayer: (player) => dispatch(createPlayer(player))
   };
 };
 
@@ -30,13 +29,13 @@ class ConnectedForm extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    const { name, elo, code } = this.state;
-    this.props.createPlayer({ name, elo }, code);
+    const { name, elo } = this.state;
+    this.props.createPlayer({ name, elo });
     this.setState(initialState);
   }
 
   render() {
-    const { name, elo, code } = this.state;
+    const { name, elo } = this.state;
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
         <div className="field">
@@ -61,11 +60,6 @@ class ConnectedForm extends Component {
             disabled='disabled'
             onChange={this.setELO.bind(this)}
           />
-        </div>
-        <div className="field">
-          <label htmlFor="code" className="label">Access Code</label>
-          <input type="password" className="input is-primary" id="code" placeholder="Access code provided to you by an administrator"
-            value={code} onChange={this.handleChange.bind(this)} required='required' />
         </div>
         <button type="submit" className="button is-primary">
           Create Player

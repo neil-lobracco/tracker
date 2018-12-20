@@ -1,5 +1,5 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
-	RECEIVE_ELO_ENTRIES,  INVALIDATE_PLAYER_DETAIL, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN } from "../constants/action-types";
+	RECEIVE_ELO_ENTRIES,  INVALIDATE_PLAYER_DETAIL, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN, SIGN_OUT } from "../constants/action-types";
 export const addPlayer = player => ({ type: ADD_PLAYER, payload: player });
 export const addMatch = match => ({ type: ADD_MATCH, payload: match });
 export const invalidatePlayerDetail = () => ({ type: INVALIDATE_PLAYER_DETAIL });
@@ -16,6 +16,10 @@ export const setLeague = (leagueId) => (dispatch) => {
 	dispatch(loadMatches());
 	dispatch(loadEloEntries());
 };
+export const signOut = () => (dispatch) => {
+	dispatch({type: SIGN_OUT});
+	fetch('/api/sessions/current', { method: 'DELETE' });
+}
 
 const fetchJson = (url, options={ headers: {}}, getState) => new Promise((resolve, reject) => {
 	options.headers['League-Id'] = getState().leagueId;

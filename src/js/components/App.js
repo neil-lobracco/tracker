@@ -7,13 +7,14 @@ import Dashboard from "./Dashboard";
 import Matches from "./Matches";
 import LeagueSelector from "./LeagueSelector";
 import LeagueWidget from "./LeagueWidget";
+import AuthWidget from "./AuthWidget";
 import 'bulma/css/bulma.css';
 import '../../main.css';
-import GoogleLogin from "./GoogleLogin";
 
 const Container = () => (
   <div className='container'>
     <LeagueWidget/>
+		<AuthWidget/>
   	<div className='tabs is-large is-boxed'>
   		<ul>
         <li><NavLink exact to='/' activeClassName='is-active'>Overview</NavLink></li>
@@ -27,7 +28,6 @@ const Container = () => (
   		<LeagueRequiredRoute path='/matches' component={Matches}/>
       <LeagueRequiredRoute exact path='/' component={Dashboard}/>
       <Route path='/leagues' component={LeagueSelector}/>
-			<Route path='/login' component={GoogleLogin}/>
 	  </Switch>
   </div>
 );

@@ -8,3 +8,4 @@ export const RECEIVE_ELO_ENTRIES = 'RECEIVE_ELO_ENTRIES';
 export const SET_LEAGUE = 'SET_LEAGUE';
 export const RECEIVE_LEAGUES = 'RECEIVE_LEAGUES';
 export const SIGN_IN = 'SIGN_IN';
+export const SIGN_OUT = 'SIGN_OUT';

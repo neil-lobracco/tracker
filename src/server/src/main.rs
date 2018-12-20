@@ -336,6 +336,12 @@ fn whoami(conn: DbConn, mut cookies: Cookies) -> Result<Json<responses::User>, s
     }
 }
 
+#[delete("/sessions/current")]
+fn logout(mut cookies: Cookies) -> rocket::response::status::Custom<()> {
+    cookies.remove_private(Cookie::named(AUTH_COOKIE));
+    status::Custom(rocket::http::Status::NoContent, ())
+}
+
 
 #[post("/users", data = "<ga>")]
 fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::GoogleAuth>) -> Result<Json<responses::User>, status::Custom<()>> {
@@ -377,7 +383,8 @@ fn main() {
                 get_elo_entries,
                 get_leagues,
                 whoami,
-                login_or_register
+                login_or_register,
+                logout
             ],
         ).launch();
 }

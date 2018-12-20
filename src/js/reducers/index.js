@@ -1,5 +1,5 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
- INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN } from "../constants/action-types";
+ INVALIDATE_PLAYER_DETAIL, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN, SIGN_OUT } from "../constants/action-types";
 const initialState = {
   players: null,
   matches: null,
@@ -32,6 +32,8 @@ const rootReducer = (state = initialState, action) => {
       return {...state, eloEntries: action.payload.map(e => { e.created_at = new Date(e.created_at); return e; }) };
      case SIGN_IN:
       return {...state, user: action.payload };
+     case SIGN_OUT:
+      return {...state, user: null };
     default:
       return state;
   }

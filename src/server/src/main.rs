@@ -161,7 +161,8 @@ fn create_player(
 ) -> Result<Json<responses::Player>, diesel::result::Error> {
     let create_player = player_json.into_inner();
     let new_player = NewPlayer {
-        name: create_player.name,
+        name: &create_player.name,
+        email: None,
     };
     let player = conn.transaction::<_, diesel::result::Error, _>(|| {
         let player: Player = diesel::insert_into(players::table)
@@ -324,7 +325,7 @@ fn whoami(conn: DbConn, mut cookies: Cookies) -> Result<Json<responses::User>, s
     match cookies.get_private(AUTH_COOKIE) {
         Some(cookie) => {
             let email = cookie.value();
-            match get_user(conn, &email) {
+            match get_user(&conn, &email) {
                 Ok(player) => Ok(Json(responses::User { id: player.id, email: player.email.unwrap(), name: player.name })),
                 Err(_) => {
                     println!("Unusual! Got email for missing user {}", email);
@@ -344,28 +345,39 @@ fn logout(mut cookies: Cookies) -> rocket::response::status::Custom<()> {
 
 
 #[post("/users", data = "<ga>")]
-fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::GoogleAuth>) -> Result<Json<responses::User>, status::Custom<()>> {
+fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::GoogleAuth>) -> Json<responses::Signin> {
     let id_token = ga.into_inner().token;
     let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
         .unwrap().json().unwrap();
-    if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
-        match get_user(conn, &token.email) {
-            Ok(player) => {
-                cookies.add_private(Cookie::new(AUTH_COOKIE, token.email));
-                Ok(Json(responses::User { id: player.id, email: player.email.unwrap(), name: player.name }))
-            },
-            Err(_) => {
-                println!("Unusual! Got email for missing user {}", token.email);
-                Err(status::Custom(rocket::http::Status::Unauthorized, ()))
-            }
+    Json(if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
+        if token.email.contains("angela") || token.email.contains("sreenath") /* || !token.email.ends_with("@addepar.com") */{
+            responses::Signin::from_error("Invalid email address from this league.")
+        } else {
+            let (player, created) = match get_user(&conn, &token.email) {
+                Ok(p) => (p, false),
+                Err(_) => {
+                    println!("No user for email {}, creating", token.email);
+                    match create_user(&conn, &token.email, token.name.as_ref().unwrap_or(&token.email)) {
+                        Ok(p) => (p, true),
+                        Err(_) => return Json(responses::Signin::from_error("Could not insert new user."))
+                    }
+                }
+            };
+            cookies.add_private(Cookie::new(AUTH_COOKIE, token.email));
+            responses::Signin::from_player(responses::User { id: player.id, email: player.email.unwrap(), name: player.name }, created)
         }
     } else {
-        Err(status::Custom(rocket::http::Status::Unauthorized, ()))
-    }
+       responses::Signin::from_error("Cannot validate email address.")
+    })
 }
 
-fn get_user(conn: DbConn, email: &str) -> Result<Player, diesel::result::Error> {
-    players::table.filter(players::email.eq(email)).first::<Player>(&*conn)
+fn get_user(conn: &DbConn, email: &str) -> Result<Player, diesel::result::Error> {
+    players::table.filter(players::email.eq(email)).first::<Player>(&**conn)
+}
+
+fn create_user(conn: &DbConn, email: &str, name: &str) -> Result<Player, diesel::result::Error> {
+    let player = NewPlayer { name: name, email: Some(email) };
+    diesel::insert_into(players::table).values(player).get_result(&**conn)
 }
 
 fn main() {

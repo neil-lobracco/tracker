@@ -29,6 +29,21 @@ pub mod responses {
         pub name: String,
     }
 
+    #[derive(Serialize)]
+    pub struct Signin {
+        pub player: Option<User>,
+        pub error: Option<&'static str>,
+        pub created: bool,
+    }
+    impl Signin {
+        pub fn from_player(player: User, created: bool) -> Signin {
+            Signin { player: Some(player), error: None, created: created }
+        }
+        pub fn from_error(error: &'static str) -> Signin {
+            Signin { player: None, error: Some(error), created: false }
+        }
+    }
+
 }
 
 pub mod requests {
@@ -59,5 +74,6 @@ pub mod google {
         pub aud: String,
         pub email: String,
         pub email_verified: String, //why, google?
+        pub name: Option<String>,
     }
 }

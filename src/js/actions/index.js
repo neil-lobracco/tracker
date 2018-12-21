@@ -47,4 +47,10 @@ export const createMatch = (match) => (dispatch, getState) => postJson('/api/mat
 	dispatch(loadPlayers());
 	dispatch(loadEloEntries());
 }, err => console.error(err));
-export const googleAuth = (token) => (dispatch, getState) => postJson('/api/users', { token }, getState).then(json => dispatch(signIn(json)));
+export const googleAuth = (token) => (dispatch, getState) => postJson('/api/users', { token }, getState).then(json => {
+	if (json.player && json.error == null) {
+		dispatch(signIn(json.player));
+	} else {
+		console.error("Error signing in: "+ json.error);
+	}
+});

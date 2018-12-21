@@ -30,8 +30,9 @@ pub struct Player {
 
 #[derive(Insertable)]
 #[table_name = "players"]
-pub struct NewPlayer {
-    pub name: String,
+pub struct NewPlayer<'a> {
+    pub name: &'a str,
+    pub email: Option<&'a str>,
 }
 
 #[derive(Queryable, Associations)]

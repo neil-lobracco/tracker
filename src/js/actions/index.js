@@ -1,5 +1,6 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_PLAYER_DETAIL,
-	RECEIVE_ELO_ENTRIES,  INVALIDATE_PLAYER_DETAIL, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN, SIGN_OUT } from "../constants/action-types";
+	RECEIVE_ELO_ENTRIES,  INVALIDATE_PLAYER_DETAIL, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN,
+	 SIGN_OUT, JOINED_LEAGUE } from "../constants/action-types";
 export const addPlayer = player => ({ type: ADD_PLAYER, payload: player });
 export const addMatch = match => ({ type: ADD_MATCH, payload: match });
 export const invalidatePlayerDetail = () => ({ type: INVALIDATE_PLAYER_DETAIL });
@@ -16,6 +17,7 @@ export const setLeague = (leagueId) => (dispatch) => {
 	dispatch(loadMatches());
 	dispatch(loadEloEntries());
 };
+export const joinedLeague = (leagueMembership) => ({ type: JOINED_LEAGUE, payload: leagueMembership });
 export const signOut = () => (dispatch) => {
 	dispatch({type: SIGN_OUT});
 	fetch('/api/sessions/current', { method: 'DELETE' });
@@ -54,3 +56,5 @@ export const googleAuth = (token) => (dispatch, getState) => postJson('/api/user
 		console.error("Error signing in: "+ json.error);
 	}
 });
+export const joinLeague = (leagueId) => (dispatch, getState) => postJson('/api/league_memberships', { player_id: getState().user.id, league_id: leagueId }, getState)
+	.then(json => { dispatch(joinedLeague(json)); dispatch(loadPlayers()); dispatch(loadEloEntries()); });

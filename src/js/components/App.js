@@ -7,12 +7,14 @@ import Dashboard from "./Dashboard";
 import Matches from "./Matches";
 import LeagueSelector from "./LeagueSelector";
 import LeagueWidget from "./LeagueWidget";
+import JoinLeagueWidget from "./JoinLeagueWidget";
 import AuthWidget from "./AuthWidget";
 import 'bulma/css/bulma.css';
 import '../../main.css';
 
 const Container = () => (
   <div className='container'>
+		<JoinLeagueWidget/>
     <LeagueWidget/>
 		<AuthWidget/>
   	<div className='tabs is-large is-boxed'>

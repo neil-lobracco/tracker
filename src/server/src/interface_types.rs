@@ -27,6 +27,12 @@ pub mod responses {
         pub id: i32,
         pub email: String,
         pub name: String,
+        pub league_memberships: Vec<LeagueMembership>,
+    }
+    #[derive(Serialize)]
+    pub struct LeagueMembership {
+        pub league_id: i32,
+        pub role: String,
     }
 
     #[derive(Serialize)]
@@ -64,6 +70,12 @@ pub mod requests {
     #[derive(Deserialize)]
     pub struct GoogleAuth {
         pub token: String,
+    }
+
+    #[derive(Deserialize)]
+    pub struct LeagueMembership {
+        pub player_id: i32,
+        pub league_id: i32,
     }
 
 }

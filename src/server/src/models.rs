@@ -49,8 +49,8 @@ pub struct LeagueMembership {
 
 #[derive(Insertable)]
 #[table_name = "league_memberships"]
-pub struct NewLeagueMembership {
-    pub role: String,
+pub struct NewLeagueMembership<'a> {
+    pub role: &'a str,
     pub league_id: i32,
     pub player_id: i32,
 }

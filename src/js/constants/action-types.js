@@ -9,3 +9,4 @@ export const SET_LEAGUE = 'SET_LEAGUE';
 export const RECEIVE_LEAGUES = 'RECEIVE_LEAGUES';
 export const SIGN_IN = 'SIGN_IN';
 export const SIGN_OUT = 'SIGN_OUT';
+export const JOINED_LEAGUE = 'JOINED_LEAGUE';

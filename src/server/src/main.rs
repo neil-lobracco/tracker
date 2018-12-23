@@ -403,7 +403,7 @@ fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::Goog
     let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
         .unwrap().json().unwrap();
     Json(if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
-        if token.email.contains("angela") || token.email.contains("sreenath") /* || !token.email.ends_with("@addepar.com") */{
+        if token.email.contains("angela") || token.email.contains("sreenath")  || !token.email.ends_with("@addepar.com") {
             responses::Signin::from_error("Invalid email address for this league.")
         } else {
             let (player, created) = match get_user(&conn, &token.email) {

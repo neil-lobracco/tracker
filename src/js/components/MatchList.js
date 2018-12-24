@@ -20,7 +20,7 @@ const getMatchScore = (match) => {
 };
 
 const mapStateToProps = state => {
-  return { matches: state.matches, players: state.players, user: state.user };
+  return { matches: state.matches, players: state.players, user: state.userContext.currentUser };
 };
 const ConnectedList = ({ matches, players, user }) => (
   matches != null &&

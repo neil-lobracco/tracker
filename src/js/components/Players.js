@@ -2,7 +2,7 @@ import React from 'react';
 import PlayerForm from './PlayerForm';
 import PlayerList from './PlayerList';
 import { connect } from "react-redux";
-const mapStateToProps = state => ({ canCreatePlayer : state.currentLeagueMembership && state.currentLeagueMembership.role == 'admin' });
+const mapStateToProps = state => ({ canCreatePlayer : state.leagues.currentMembership && state.leagues.currentMembership.role == 'admin' });
 export default connect(mapStateToProps)(({canCreatePlayer}) => (
 	<div className='players'>
 		<div className='columns'>

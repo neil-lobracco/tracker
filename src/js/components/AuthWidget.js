@@ -10,7 +10,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const mapStateToProps = (state) => ({ user: state.user });
+const mapStateToProps = (state) => ({ user: state.userContext.currentUser });
 
 class AuthWidget extends React.Component {
     successfulLogin(response) {

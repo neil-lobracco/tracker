@@ -21,4 +21,4 @@ class LeagueWidget extends React.Component {
 
 	}
 }
-export default connect(state => ({leagueId : state.leagueId, leagues: state.leagues}))(LeagueWidget);
+export default connect(state => ({leagueId : state.leagues.current, leagues: state.leagues.all}))(LeagueWidget);

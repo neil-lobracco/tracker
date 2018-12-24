@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { Link } from 'react-router-dom';
 const mapStateToProps = state => {
-  return { players: state.players, user: state.user };
+  return { players: state.players, user: state.userContext.currentUser };
 };
 class ConnectedList extends React.Component {
   getFancyName(player, idx) {

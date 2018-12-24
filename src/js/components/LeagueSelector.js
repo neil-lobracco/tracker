@@ -9,7 +9,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const mapStateToProps = (state) => ({ leagues: state.leagues, leagueId: state.leagueId });
+const mapStateToProps = (state) => ({ leagues: state.leagues.all, leagueId: state.leagues.current });
 
 class LeagueSelector extends React.Component {
 	leaguesLoaded() {

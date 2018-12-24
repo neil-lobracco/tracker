@@ -8,7 +8,8 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const mapStateToProps = (state) => ({ leagues: state.leagues, leagueId: state.leagueId, user: state.user, currentLeagueMembership: state.currentLeagueMembership });
+const mapStateToProps = (state) => ({ leagues: state.leagues.all, leagueId: state.leagues.current,
+	 user: state.userContext.currentUser, currentLeagueMembership: state.leagues.currentMembership });
 
 class JoinLeagueWidget extends React.Component {
 	showWidget() {

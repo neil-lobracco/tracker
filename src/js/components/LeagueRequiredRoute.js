@@ -6,7 +6,7 @@ class LeagueRequiredRoute extends React.Component {
   render() {
     const { component: Component, ...rest } = this.props;
     return (
-      <Route {...rest} component={connect(state => ({leagueId: state.leagueId}))( props =>
+      <Route {...rest} component={connect(state => ({leagueId: state.leagues.current}))( props =>
       {
       return props.leagueId != null ? (
         <Component {...props} />

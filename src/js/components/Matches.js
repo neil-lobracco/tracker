@@ -2,7 +2,7 @@ import React from 'react';
 import MatchForm from './MatchForm';
 import MatchList from './MatchList';
 import { connect } from "react-redux";
-const mapStateToProps = state => ({ canCreateMatch : state.currentLeagueMembership && state.currentLeagueMembership.role == 'admin' });
+const mapStateToProps = state => ({ canCreateMatch : state.leagues.currentMembership && state.leagues.currentMembership.role == 'admin' });
 export default connect(mapStateToProps)(({canCreateMatch}) => (
 	<div className='matches'>
 		<div className='columns'>

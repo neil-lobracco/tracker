@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from "react-redux";
-import {loadPlayerDetail }from "../actions/index";
 import Loadable from 'react-loadable';
 
 const LoadableChart = Loadable({

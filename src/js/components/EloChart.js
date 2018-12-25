@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import Loadable from 'react-loadable';
 
 const LoadableChart = Loadable({
-  loader: () => import( /* webpackPrefetch: true */ 'react-plotly.js'),
+  loader: () => import( /* webpackPrefetch: true */ 'react-plotly.js').then(i => i.default),
   loading: () => <div>Loading...</div>,
 });
 

@@ -12,13 +12,17 @@ class LeagueWidget extends React.Component {
 		}
 	}
 	render() {
-    return (
-    	<span className='leagues-widget'>{this.leagueInfo()}
-    		<NavLink to={{ pathname: "/leagues", state: { from: window.location.pathname }}}
+        return (
+            <div className="navbar-item has-dropdown is-hoverable">
+                <a className="navbar-link">
+                    {this.leagueInfo()}
+                </a>
+                <div className="navbar-dropdown">
+					<NavLink to={{ pathname: "/leagues", state: { from: window.location.pathname }}}
      activeClassName='hidden'>Change League</NavLink>
-     	</span>
-     );
-
+                </div>
+            </div>
+        );
 	}
 }
 export default connect(state => ({leagueId : state.leagues.current, leagues: state.leagues.all}))(LeagueWidget);

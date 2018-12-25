@@ -2,11 +2,21 @@
 	margin: 50px;
 }
 
-.tabs li a.is-active {
-	color: #3273dc;
-	background-color: white;
-	border-color: #dbdbdb;
-	border-bottom-color: transparent !important;
+.columns {
+	width: 100%;
+}
+
+.modebar--hover {
+	z-index: auto !important;
+}
+
+nav a {
+	border-bottom: 1px solid transparent;
+    transition: border-color 0.5s ease-in;
+}
+
+nav a.is-active {
+	border-color: black;
 }
 
 .fade-out {
@@ -59,10 +69,6 @@ tr.inactive {
 }
 .hidden {
 	display: none;
-}
-.auth-widget {
-	float: right;
-	margin-right: 40px;
 }
 .join-league {
 	position: fixed;

@@ -8,3 +8,6 @@ export const RECEIVE_LEAGUES = 'RECEIVE_LEAGUES';
 export const SIGN_IN = 'SIGN_IN';
 export const SIGN_OUT = 'SIGN_OUT';
 export const JOINED_LEAGUE = 'JOINED_LEAGUE';
+export const LOADING_BEGIN = 'LOADING_BEGIN';
+export const LOADING_COMPLETE = 'LOADING_COMPLETE';
+export const LOADING_FAIL = 'LOADING_FAIL';

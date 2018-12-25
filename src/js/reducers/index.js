@@ -1,5 +1,5 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN,
- JOINED_LEAGUE, SIGN_OUT } from "../constants/action-types";
+ JOINED_LEAGUE, SIGN_OUT, LOADING_BEGIN, LOADING_COMPLETE, LOADING_FAIL  } from "../constants/action-types";
 const calcLeagueMembership = (leagueId, league_memberships) => leagueId && league_memberships && league_memberships.find(lm => lm.league_id == leagueId);
 const playersReducer = (state, action) => {
   switch(action.type) {
@@ -18,7 +18,7 @@ const matchesReducer = (state, action) => {
     case RECEIVE_MATCHES:
      return action.payload;
     case ADD_MATCH:
-      return [action.payload, ...state.matches ];
+      return [action.payload, ...state ];
     case SET_LEAGUE:
       return null;
     default:
@@ -67,6 +67,18 @@ const userReducer = (state = {}, action) => {
       return state;
  }
 };
+const loadingReducer = (state = {numPending: 0, error: null}, action) => {
+  switch (action.type) {
+    case LOADING_BEGIN:
+      return {...state, numPending: state.numPending + 1};
+    case LOADING_FAIL:
+      return {...state, error: action.payload };
+    case LOADING_COMPLETE:
+      return {...state, numPending: state.numPending - 1};
+    default:
+      return state;
+  }
+};
 const rootReducer = (state = {}, action) => {
   return {
     players: playersReducer(state.players, action),
@@ -74,6 +86,7 @@ const rootReducer = (state = {}, action) => {
     userContext: userReducer(state.userContext, action),
     eloEntries: eloEntryReducer(state.eloEntries, action),
     leagues: leaguesReducer(state.leagues, action),
+    loading: loadingReducer(state.loading, action),
   };
 };
 

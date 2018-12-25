@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
+import {BrowserRouter as Router, Route, NavLink, Switch } from 'react-router-dom';
 import LeagueRequiredRoute from './LeagueRequiredRoute';
 import Players from "./Players";
 import PlayerDetail from "./PlayerDetail";
@@ -9,11 +9,12 @@ import LeagueSelector from "./LeagueSelector";
 import LeagueWidget from "./LeagueWidget";
 import JoinLeagueWidget from "./JoinLeagueWidget";
 import AuthWidget from "./AuthWidget";
+import AppContainer from "./AppContainer";
 import 'bulma/css/bulma.css';
 import '../../main.css';
 
 const Container = () => (
-  <div className='container'>
+  <AppContainer>
 		<JoinLeagueWidget/>
     <LeagueWidget/>
 		<AuthWidget/>
@@ -31,7 +32,7 @@ const Container = () => (
       <LeagueRequiredRoute exact path='/' component={Dashboard}/>
       <Route path='/leagues' component={LeagueSelector}/>
 	  </Switch>
-  </div>
+	</AppContainer>
 );
 const App = () => (
   <Router>

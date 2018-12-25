@@ -164,6 +164,7 @@ fn fetch_current_elo(conn: &DbConn, player_ids: &[i32], league_id: &LeagueId) ->
 
 #[get("/players")]
 fn get_players(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::Player>>> {
+    std::thread::sleep(std::time::Duration::from_secs(5));
     let players_and_counts = elo_entries::table
         .inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
         .inner_join(players::table.on(players::id.eq(league_memberships::player_id)))
@@ -403,7 +404,7 @@ fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::Goog
     let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
         .unwrap().json().unwrap();
     Json(if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
-        if token.email.contains("angela") || token.email.contains("sreenath")  || !token.email.ends_with("@addepar.com") {
+        if token.email.contains("angela") || token.email.contains("sreenath") /* || !token.email.ends_with("@addepar.com")*/ {
             responses::Signin::from_error("Invalid email address for this league.")
         } else {
             let (player, created) = match get_user(&conn, &token.email) {

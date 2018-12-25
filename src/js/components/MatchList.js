@@ -1,5 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
+import ReactTable from "react-table";
+import 'react-table/react-table.css'
 import moment from 'moment';
 const getMatchDescription = (match, players, user) => {
   if (!players || players.length == 0) { return ''; }
@@ -13,6 +15,29 @@ const getMatchDescription = (match, players, user) => {
   }
   return desc;
 };
+const getColumns = (players, user) => {
+  return [
+    {
+      Header: 'Time',
+      accessor: 'created_at',
+      Cell: (props) => <span>{moment(props.value).calendar()}</span>,
+    },
+    {
+      id: 'outcome',
+      Header: 'Outcome',
+      accessor: (m) => getMatchDescription(m, players, user),
+    },
+    {
+      id: 'score',
+      Header: 'Score',
+      accessor: (m) => getMatchScore(m),
+    },
+    {
+      Header: 'Comment',
+      accessor: 'comment',
+    },
+  ];
+};
 const getMatchScore = (match) => {
   if (match.player1_score + match.player2_score != 1) {
     return [match.player1_score, match.player2_score].sort().reverse().join('-');
@@ -24,19 +49,11 @@ const mapStateToProps = state => {
 };
 const ConnectedList = ({ matches, players, user }) => (
   matches != null &&
-  <table className="table">
-  	<thead><tr><th>Time</th><th>Outcome</th><th>Score</th><th>Comment</th></tr></thead>
-  	<tbody>
-    {matches.map(match => (
-      <tr key={match.id}>
-      	<td>{moment(match.created_at).calendar()}</td>
-      	<td>{getMatchDescription(match, players, user)}</td>
-        <td>{getMatchScore(match)}</td>
-        <td>{match.comment}</td>
-      </tr>
-    ))}
-    </tbody>
-  </table>
+  <ReactTable
+    data={matches}
+    columns={getColumns(players, user)}
+    minRows='0'
+  />
 );
 const List = connect(mapStateToProps)(ConnectedList);
 export default List;

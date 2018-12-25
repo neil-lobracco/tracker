@@ -164,7 +164,6 @@ fn fetch_current_elo(conn: &DbConn, player_ids: &[i32], league_id: &LeagueId) ->
 
 #[get("/players")]
 fn get_players(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Vec<responses::Player>>> {
-    std::thread::sleep(std::time::Duration::from_secs(5));
     let players_and_counts = elo_entries::table
         .inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
         .inner_join(players::table.on(players::id.eq(league_memberships::player_id)))

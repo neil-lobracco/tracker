@@ -1,9 +1,10 @@
 import React from 'react';
 import { connect } from "react-redux";
 import Loadable from 'react-loadable';
+import createPlotlyComponent from 'react-plotly.js/factory';
 
 const LoadableChart = Loadable({
-  loader: () => import( /* webpackPrefetch: true */ 'react-plotly.js').then(i => i.default),
+  loader: () => import( /* webpackPrefetch: true */ 'plotly.js-basic-dist').then(m => createPlotlyComponent(m)),
   loading: () => <div>Loading...</div>,
 });
 

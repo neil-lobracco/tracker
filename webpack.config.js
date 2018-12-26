@@ -1,5 +1,8 @@
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+
 
 module.exports = {
     module: {
@@ -48,7 +51,14 @@ module.exports = {
     optimization: {
         splitChunks: {
             chunks: 'all'
-        }
+        },
+        minimizer: [
+            new UglifyJsPlugin({
+                cache: true,
+                parallel: true,
+            }),
+            new OptimizeCSSAssetsPlugin({})
+        ]
     },
     devServer: {
         proxy: { '/api': { target: 'http://localhost:8000', pathRewrite: { '^/api': '' } } },

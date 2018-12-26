@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import ReactTable from "react-table";
 import 'react-table/react-table.css'
-import moment from 'moment';
+import { formatRelative } from 'date-fns';
 const getMatchDescription = (match, players, user) => {
   if (!players || players.length == 0) { return ''; }
   const player1_name = players.find(p => p.id == match.player1_id).name;
@@ -20,7 +20,7 @@ const getColumns = (players, user) => {
     {
       Header: 'Time',
       accessor: 'created_at',
-      Cell: (props) => <span>{moment(props.value).calendar()}</span>,
+      Cell: (props) => <span title={props.value} className='relative-date'>{formatRelative(props.value, new Date())}</span>,
     },
     {
       id: 'outcome',

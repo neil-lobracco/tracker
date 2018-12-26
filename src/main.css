@@ -28,6 +28,10 @@ nav a.is-active {
 	transition: opacity 0.5s ease-in-out;
 }
 
+.relative-date {
+	text-transform: capitalize;
+}
+
 input[type="radio"] {
 	margin-right: 5px;
 }

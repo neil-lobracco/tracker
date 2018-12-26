@@ -26,8 +26,6 @@
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.0.7",
     "mini-css-extract-plugin": "^0.5.0",
-    "moment": "^2.23.0",
-    "plotly.js": "^1.43.1",
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
     "react-loadable": "^5.5.0",
@@ -43,7 +41,11 @@
   },
   "dependencies": {
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "date-fns": "^2.0.0-alpha.26",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "plotly.js-basic-dist": "^1.43.1",
     "react-google-login": "^4.0.0",
-    "react-table": "^6.8.6"
+    "react-table": "^6.8.6",
+    "uglifyjs-webpack-plugin": "^2.1.0"
   }
 }

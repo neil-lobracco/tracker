@@ -24,6 +24,9 @@ table! {
         name -> Varchar,
         created_at -> Timestamptz,
         sport_id -> Int4,
+        members_only -> Bool,
+        domain -> Nullable<Text>,
+        description -> Nullable<Text>,
     }
 }
 

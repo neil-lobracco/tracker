@@ -1,3 +1,4 @@
+use super::models;
 pub mod responses {
     #[derive(Serialize)]
     pub struct Player {
@@ -10,11 +11,39 @@ pub mod responses {
     pub struct League {
         pub id: i32,
         pub name: String,
-
         pub created_at: chrono::DateTime<chrono::prelude::Utc>,
         pub sport_id: i32,
         pub sport_name: String,
+        pub domain: Option<String>,
+        pub description: Option<String>,
+        pub members_only: bool,
     }
+    impl League {
+        pub fn from_parts(league: super::models::League, sport_name: String) -> League {
+            League { 
+                id: league.id,
+                name: league.name,
+                created_at: league.created_at,
+                sport_id: league.id,
+                sport_name: sport_name,
+                domain: league.domain,
+                members_only: league.members_only,
+                description: league.description,
+            }
+        }
+    }
+
+    #[derive(Serialize)]
+    pub struct Sport {
+        pub id: i32,
+        pub name: String,
+    }
+    impl From<super::models::Sport> for Sport {
+        fn from(sport: super::models::Sport) -> Sport {
+            Sport { id: sport.id, name: sport.name }
+        }
+    }
+
     #[derive(Serialize)]
     pub struct EloEntry {
         pub created_at: chrono::DateTime<chrono::prelude::Utc>,

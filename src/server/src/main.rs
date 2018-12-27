@@ -233,13 +233,7 @@ fn get_leagues(conn: DbConn) -> QueryResult<Json<Vec<responses::League>>> {
         .map(|tups| {
             Json(
                 tups.into_iter()
-                    .map(|tup| responses::League {
-                        id: tup.0.id,
-                        name: tup.0.name,
-                        created_at: tup.0.created_at,
-                        sport_id: tup.0.sport_id,
-                        sport_name: tup.1,
-                    }).collect(),
+                    .map(|tup| responses::League::from_parts(tup.0, tup.1)).collect(),
             )
         })
 }
@@ -444,6 +438,23 @@ fn create_league_membership(conn: &DbConn, lm: NewLeagueMembership) -> Result<Le
     diesel::insert_into(league_memberships::table).values(lm).get_result(&**conn)
 }
 
+#[post("/leagues", data="<league>")]
+fn create_league(conn: DbConn, user: User, league: Json<NewLeague>) -> Result<Json<responses::League>, diesel::result::Error> {
+    let league: League = diesel::insert_into(leagues::table).values(league.into_inner()).get_result(&*conn)?;
+    create_league_membership(&conn, NewLeagueMembership { role: ADMIN_ROLE, league_id: league.id, player_id: user.id })?;
+    sports::table
+        .select(sports::name)
+        .filter(sports::id.eq(league.sport_id))
+        .first::<String>(&*conn).map(|sport| {
+            Json(responses::League::from_parts(league, sport))
+        })
+}
+
+#[get("/sports")]
+fn get_sports(conn: DbConn) -> Result<Json<Vec<responses::Sport>>, diesel::result::Error> {
+    sports::table.load(&*conn).map(|v: Vec<Sport>| Json(v.into_iter().map(|s| responses::Sport::from(s)).collect()))
+}
+
 fn main() {
     rocket::ignite()
         .manage(init_pool())
@@ -461,7 +472,9 @@ fn main() {
                 whoami,
                 login_or_register,
                 logout,
-                join_league
+                join_league,
+                create_league,
+                get_sports
             ],
         ).launch();
 }

@@ -19,6 +19,19 @@ pub struct League {
     pub name: String,
     pub created_at: chrono::DateTime<chrono::prelude::Utc>,
     pub sport_id: i32,
+    pub members_only: bool,
+    pub domain: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[table_name = "leagues"]
+pub struct NewLeague {
+    pub name: String,
+    pub sport_id: i32,
+    pub members_only: bool,
+    pub domain: Option<String>,
+    pub description: Option<String>,
 }
 
 #[derive(Queryable, Identifiable)]

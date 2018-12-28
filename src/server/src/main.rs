@@ -379,6 +379,17 @@ fn join_league(conn: DbConn, user: User, lm: Json<requests::LeagueMembership>) -
     if lm.player_id != user.id {
         return Err(status::BadRequest::<()>(None));
     }
+    if let Ok(league) = leagues::table.filter(leagues::id.eq(lm.league_id)).first::<League>(&*conn) {
+        if let Some(d) = league.domain {
+            if let Some(ref e) = user.email {
+                if e.ends_with(&format!("@{}",d)) {
+                    return Err(status::BadRequest::<()>(None));
+                }
+            }
+        }
+    } else {
+        return Err(status::BadRequest::<()>(None));
+    }
     let created_lm = create_league_membership(&conn, NewLeagueMembership { role: ADMIN_ROLE, league_id: lm.league_id, player_id: lm.player_id })
         .expect("Failed to create LM.");
     diesel::insert_into(elo_entries::table)

@@ -52,7 +52,7 @@ const ConnectedList = ({ matches, players, user }) => (
   <ReactTable
     data={matches}
     columns={getColumns(players, user)}
-    minRows='0'
+    minRows='2'
   />
 );
 const List = connect(mapStateToProps)(ConnectedList);

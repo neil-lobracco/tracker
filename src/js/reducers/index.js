@@ -1,5 +1,5 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH, RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN,
- JOINED_LEAGUE, SIGN_OUT, LOADING_BEGIN, LOADING_COMPLETE, LOADING_FAIL  } from "../constants/action-types";
+ JOINED_LEAGUE, SIGN_OUT, LOADING_BEGIN, LOADING_COMPLETE, LOADING_FAIL, RECEIVE_SPORTS, ADD_LEAGUE  } from "../constants/action-types";
 const calcLeagueMembership = (leagueId, league_memberships) => leagueId && league_memberships && league_memberships.find(lm => lm.league_id == leagueId);
 const playersReducer = (state, action) => {
   switch(action.type) {
@@ -31,6 +31,9 @@ const leaguesReducer = (state = {}, action) => {
     case RECEIVE_LEAGUES:
      newState = { ...state, all: action.payload };
      break;
+    case ADD_LEAGUE:
+      newState = { ...state, all: [...state.all, action.payload] };
+      break;
     case SET_LEAGUE:
      newState = { ...state, current: action.payload };
      break;
@@ -41,7 +44,7 @@ const leaguesReducer = (state = {}, action) => {
       newState = {...state, memberships: null };
       break;
     case JOINED_LEAGUE:
-      newState =  {...state,  memberships: [...memberships, action.payload] };
+      newState =  {...state,  memberships: [...state.memberships, action.payload] };
       break;
   };
   newState.currentMembership = calcLeagueMembership(newState.current, newState.memberships);
@@ -79,6 +82,14 @@ const loadingReducer = (state = {numPending: 0, error: null}, action) => {
       return state;
   }
 };
+const sportsReducer = (state, action) => {
+  switch (action.type) {
+    case RECEIVE_SPORTS:
+      return action.payload;
+    default:
+      return state;
+  }
+};
 const rootReducer = (state = {}, action) => {
   return {
     players: playersReducer(state.players, action),
@@ -87,6 +98,7 @@ const rootReducer = (state = {}, action) => {
     eloEntries: eloEntryReducer(state.eloEntries, action),
     leagues: leaguesReducer(state.leagues, action),
     loading: loadingReducer(state.loading, action),
+    sports: sportsReducer(state.sports, action),
   };
 };
 

@@ -1,10 +1,12 @@
 import { ADD_PLAYER, RECEIVE_PLAYERS, RECEIVE_MATCHES, ADD_MATCH,
 	RECEIVE_ELO_ENTRIES, SET_LEAGUE, RECEIVE_LEAGUES, SIGN_IN,
-	 SIGN_OUT, JOINED_LEAGUE, LOADING_BEGIN, LOADING_COMPLETE, LOADING_FAIL } from "../constants/action-types";
+	 SIGN_OUT, JOINED_LEAGUE, LOADING_BEGIN, LOADING_COMPLETE, LOADING_FAIL, RECEIVE_SPORTS, ADD_LEAGUE } from "../constants/action-types";
 export const addPlayer = player => ({ type: ADD_PLAYER, payload: player });
 export const addMatch = match => ({ type: ADD_MATCH, payload: match });
+export const addLeague = league => ({ type: ADD_LEAGUE, payload: league });
 export const receivePlayers = (players) => ({ type: RECEIVE_PLAYERS, payload: players });
 export const receiveMatches = (matches) => ({ type: RECEIVE_MATCHES, payload: matches });
+export const receiveSports = (sports) => ({ type: RECEIVE_SPORTS, payload: sports });
 export const receiveEloEntries = (entries) => ({type: RECEIVE_ELO_ENTRIES, payload: entries });
 export const signIn = (user) => ({type: SIGN_IN, payload: user});
 export const receiveLeagues = (leagues) => ({type: RECEIVE_LEAGUES, payload: leagues});
@@ -38,10 +40,13 @@ const postJson = (url, json, getState, dispatch) => fetchJson(url, {
 const simpleFetch = (url, success) => () => (dispatch, getState) => fetchJson(url, undefined, getState, dispatch).then(success.bind(null,dispatch), err => console.error(err));
 
 export const loadPlayers = simpleFetch('/api/players', (dispatch, json) => dispatch(receivePlayers(json)));
+export const loadSports = simpleFetch('/api/sports', (dispatch, json) => dispatch(receiveSports(json)));
 export const loadMatches = simpleFetch('/api/matches', (dispatch, json) => dispatch(receiveMatches(json)));
 export const loadEloEntries = simpleFetch('/api/elo_entries', (dispatch, json) => dispatch(receiveEloEntries(json)));
 export const loadLeagues = simpleFetch('/api/leagues', (dispatch, json) => dispatch(receiveLeagues(json)));
 export const loadUserContext = simpleFetch('/api/users/me', (dispatch, json) => dispatch(signIn(json)));
+export const createLeague = (league) => (dispatch, getState) => postJson('/api/leagues', league, getState, dispatch)
+	.then(json => {dispatch(addLeague(json)); dispatch(joinedLeague({ league_id: json.id, role: 'admin'})); }, err => console.error(err));
 export const createPlayer = (player) => (dispatch, getState) => postJson('/api/players', player, getState, dispatch).then(json => dispatch(addPlayer(json)), err => console.error(err));
 export const createMatch = (match) => (dispatch, getState) => postJson('/api/matches', match, getState, dispatch).then(json => {
 	dispatch(addMatch(json));
@@ -55,5 +60,5 @@ export const googleAuth = (token) => (dispatch, getState) => postJson('/api/user
 		console.error("Error signing in: "+ json.error);
 	}
 });
-export const joinLeague = (leagueId) => (dispatch, getState) => postJson('/api/league_memberships', { player_id: getState().userContext.currentUser.id, league_id: getState().leagues.current }, getState, dispatch)
+export const joinLeague = (leagueId) => (dispatch, getState) => postJson('/api/league_memberships', { player_id: getState().userContext.currentUser.id, league_id: leagueId }, getState, dispatch)
 	.then(json => { dispatch(joinedLeague(json)); dispatch(loadPlayers()); dispatch(loadEloEntries()); });

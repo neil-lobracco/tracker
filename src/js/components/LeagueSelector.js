@@ -1,11 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { loadLeagues, setLeague } from '../actions';
+import { setLeague } from '../actions';
 
 const mapDispatchToProps = dispatch => {
   return {
     setLeague: (leagueId) => dispatch(setLeague(leagueId)),
-    loadLeagues: () => dispatch(loadLeagues()),
   };
 };
 
@@ -16,6 +15,7 @@ class LeagueSelector extends React.Component {
 		return this.props.leagues != null;
 	}
 	selectLeague(leagueId) {
+		if (leagueId == this.props.leagueId) { return; }
 		this.props.setLeague(leagueId);
 		const locState = this.props.location.state;
 		if (locState && locState.from) {

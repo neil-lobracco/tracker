@@ -5,7 +5,7 @@ import Players from "./Players";
 import PlayerDetail from "./PlayerDetail";
 import Dashboard from "./Dashboard";
 import Matches from "./Matches";
-import LeagueSelector from "./LeagueSelector";
+import Leagues from "./Leagues";
 import JoinLeagueWidget from "./JoinLeagueWidget";
 import AppContainer from "./AppContainer";
 import NavBar from "./NavBar";
@@ -21,7 +21,7 @@ const Container = () => (
   		<LeagueRequiredRoute path='/players/:playerId' component={PlayerDetail}/>
   		<LeagueRequiredRoute path='/matches' component={Matches}/>
       <LeagueRequiredRoute exact path='/' component={Dashboard}/>
-      <Route path='/leagues' component={LeagueSelector}/>
+      <Route path='/leagues' component={Leagues}/>
 	  </Switch>
 	</AppContainer>
 );

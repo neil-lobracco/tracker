@@ -1,8 +1,10 @@
 export const ADD_PLAYER = 'ADD_PLAYER';
 export const ADD_MATCH = 'ADD_MATCH';
+export const ADD_LEAGUE = 'ADD_LEAGUE';
 export const RECEIVE_PLAYERS = 'RECEIVE_PLAYERS';
 export const RECEIVE_MATCHES = 'RECEIVE_MATCHES';
 export const RECEIVE_ELO_ENTRIES = 'RECEIVE_ELO_ENTRIES';
+export const RECEIVE_SPORTS = 'RECEIVE_SPORTS';
 export const SET_LEAGUE = 'SET_LEAGUE';
 export const RECEIVE_LEAGUES = 'RECEIVE_LEAGUES';
 export const SIGN_IN = 'SIGN_IN';

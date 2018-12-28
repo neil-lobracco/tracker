@@ -58,7 +58,11 @@ tr.inactive {
 	border: 1px solid;
 }
 
-.league.active span {
+.league.current {
+	cursor: auto;
+}
+
+.league.current span {
 	background-color: lightgreen;
 }
 

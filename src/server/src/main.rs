@@ -382,7 +382,7 @@ fn join_league(conn: DbConn, user: User, lm: Json<requests::LeagueMembership>) -
     if let Ok(league) = leagues::table.filter(leagues::id.eq(lm.league_id)).first::<League>(&*conn) {
         if let Some(d) = league.domain {
             if let Some(ref e) = user.email {
-                if e.ends_with(&format!("@{}",d)) {
+                if !e.ends_with(&format!("@{}",d)) {
                     return Err(status::BadRequest::<()>(None));
                 }
             }
@@ -408,7 +408,7 @@ fn login_or_register(conn: DbConn, mut cookies: Cookies, ga: Json<requests::Goog
     let token: google::TokenResponse = reqwest::get(&format!("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={}", id_token))
         .unwrap().json().unwrap();
     Json(if token.email_verified == "true" && token.aud == GOOGLE_CLIENT_ID {
-        if token.email.contains("angela") || token.email.contains("sreenath") /* || !token.email.ends_with("@addepar.com")*/ {
+        if token.email.contains("angela") || token.email.contains("sreenath") {
             responses::Signin::from_error("Invalid email address for this league.")
         } else {
             let (player, created) = match get_user(&conn, &token.email) {
@@ -452,7 +452,13 @@ fn create_league_membership(conn: &DbConn, lm: NewLeagueMembership) -> Result<Le
 #[post("/leagues", data="<league>")]
 fn create_league(conn: DbConn, user: User, league: Json<NewLeague>) -> Result<Json<responses::League>, diesel::result::Error> {
     let league: League = diesel::insert_into(leagues::table).values(league.into_inner()).get_result(&*conn)?;
-    create_league_membership(&conn, NewLeagueMembership { role: ADMIN_ROLE, league_id: league.id, player_id: user.id })?;
+    let created_lm = create_league_membership(&conn, NewLeagueMembership { role: ADMIN_ROLE, league_id: league.id, player_id: user.id })?;
+    diesel::insert_into(elo_entries::table)
+        .values(&NewEloEntry {
+            league_membership_id: created_lm.id,
+            match_id: None,
+            score: 1500.0,
+        }).execute(&*conn).expect("Unable to create EE.");
     sports::table
         .select(sports::name)
         .filter(sports::id.eq(league.sport_id))

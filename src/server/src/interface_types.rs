@@ -24,7 +24,7 @@ pub mod responses {
                 id: league.id,
                 name: league.name,
                 created_at: league.created_at,
-                sport_id: league.id,
+                sport_id: league.sport_id,
                 sport_name: sport_name,
                 domain: league.domain,
                 members_only: league.members_only,

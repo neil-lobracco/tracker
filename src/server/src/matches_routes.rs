@@ -1,4 +1,3 @@
-use self::diesel::prelude::*;
 use super::interface_types::*;
 use super::models::*;
 use super::schema::*;

@@ -8,7 +8,7 @@ export const signOut = () => (dispatch) => {
 	fetch('/api/sessions/current', { method: 'DELETE' });
 }
 
-export const loadUserContext = simpleFetch('/api/users/me', (dispatch, json) => dispatch(signIn(json)));
+export const loadUserContext = simpleFetch('/api/users/me', (dispatch, json) => dispatch(signIn(json)), (err) => false);
 
 export const googleAuth = (token) => (dispatch, getState) => postJson('/api/users', { token }, getState, dispatch).then(json => {
 	if (json.player && json.error == null) {

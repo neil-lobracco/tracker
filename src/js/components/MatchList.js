@@ -47,13 +47,13 @@ const getMatchScore = (match) => {
 const mapStateToProps = state => {
   return { matches: state.matches, players: state.players, user: state.userContext.currentUser };
 };
-const ConnectedList = ({ matches, players, user }) => (
+
+const MatchList = connect(mapStateToProps)(({ matches, players, user }) => (
   matches != null &&
   <ReactTable
     data={matches}
     columns={getColumns(players, user)}
     minRows='2'
   />
-);
-const List = connect(mapStateToProps)(ConnectedList);
-export default List;
+));
+export default MatchList;

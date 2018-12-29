@@ -40,7 +40,8 @@ class LeagueForm extends PureComponent {
 
   handleSubmit(event) {
     event.preventDefault();
-    this.props.createLeague(this.state);
+    let cleaned = {...this.state, description: this.state.description || null, domain: this.state.domain || null };
+    this.props.createLeague(cleaned);
     this.setState(initialState);
   }
 
@@ -98,7 +99,7 @@ class LeagueForm extends PureComponent {
             />
           </label>
         </div>
-        <div className="field">        
+        <div className="field">
           <div className='select is-info'>
             <select
                 required="required"

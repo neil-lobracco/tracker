@@ -1,66 +1,56 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { createPlayer } from "../actions/index";
+import FormField from "./FormField";
 
 const initialState = {
     name : '',
     elo : 1500,
 };
 
-const mapDispatchToProps = dispatch => {
-  return {
-    createPlayer: (player) => dispatch(createPlayer(player))
-  };
-};
-
-class ConnectedForm extends Component {
+class Form extends Component {
   constructor() {
     super();
     this.state = initialState;
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange(event) {
-    this.setState({ [event.target.id]: event.target.value });
-  }
-
-  setELO(event) {
-    this.setState({ elo: parseFloat(event.target.value) });
+    this.setState({ [event.target.name]: event.target.value });
   }
 
   handleSubmit(event) {
     event.preventDefault();
-    const { name, elo } = this.state;
-    this.props.createPlayer({ name, elo });
+    this.props.createPlayer({ name: this.state.name, elo: parseInt(this.state.elo) });
     this.setState(initialState);
   }
 
   render() {
     const { name, elo } = this.state;
     return (
-      <form onSubmit={this.handleSubmit.bind(this)}>
-        <div className="field">
-          <label htmlFor="name" className="label">Name</label>
+      <form onSubmit={this.handleSubmit}>
+        <FormField description="Name">
           <input
             type="text"
             className="input is-primary"
-            id="name"
+            name="name"
             placeholder="Enter the player's name"
             value={name}
-            onChange={this.handleChange.bind(this)}
+            onChange={this.handleChange}
           />
-        </div>
-        <div className="field">        
-          <label htmlFor="elo" className="label">Initial Elo</label>
+        </FormField>
+        <FormField description="Initial Elo">
           <input
-            type="number"
-            className="input is-primary"
-            id="elo"
-            placeholder="Enter the player's starting Elo score"
-            value={elo}
-            disabled='disabled'
-            onChange={this.setELO.bind(this)}
-          />
-        </div>
+              type="number"
+              className="input is-primary"
+              name="elo"
+              placeholder="Enter the player's starting Elo score"
+              value={elo}
+              disabled='disabled'
+              onChange={this.handleChange}
+            />
+        </FormField>
         <button type="submit" className="button is-primary">
           Create Player
         </button>
@@ -69,6 +59,12 @@ class ConnectedForm extends Component {
   }
 }
 
-const Form = connect(null, mapDispatchToProps)(ConnectedForm);
+const mapDispatchToProps = dispatch => {
+  return {
+    createPlayer: (player) => dispatch(createPlayer(player))
+  };
+};
 
-export default Form;
+const PlayerForm = connect(null, mapDispatchToProps)(Form);
+
+export default PlayerForm;

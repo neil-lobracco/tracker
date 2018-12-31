@@ -1,6 +1,21 @@
 import React, { PureComponent } from "react";
 import { connect } from "react-redux";
 import { createLeague, loadSports } from "../actions/index";
+import FormField from "./FormField";
+
+const SportSelectionField = React.memo(({onChange, sport, sports}) => (
+  <FormField>
+    <select
+        required="required"
+        name="sport_id"
+        value={sport}
+        onChange={onChange}>
+        <option value="" disabled="disabled">Select a sport</option>
+        {(sports || []).map(sport => (
+            <option key={sport.id} value={sport.id}>{sport.name}</option>
+        ))}
+    </select>
+  </FormField>));
 
 const mapStateToProps = state => ({
     sports: state.sports,
@@ -24,6 +39,8 @@ class LeagueForm extends PureComponent {
   constructor() {
     super();
     this.state = initialState;
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -52,67 +69,46 @@ class LeagueForm extends PureComponent {
   render() {
     const { name, description, domain, members_only, sport_id } = this.state;
     return (
-      <form onSubmit={this.handleSubmit.bind(this)}>
-        <div className="field">
-          <label className="label">Name
-            <input
-                type="text"
-                className="input is-primary"
-                name="name"
-                required='required'
-                placeholder="Enter the league name"
-                value={name}
-                onChange={this.handleChange.bind(this)}
-            />
-          </label>
-        </div>
-        <div className="field">        
-          <label className="label">Description (optional)
-            <textarea
-                className="textarea"
-                name="description"
-                placeholder="Description of this league"
-                value={description}
-                onChange={this.handleChange.bind(this)}
-            />
-          </label>
-        </div>
-        <div className="field">
-          <label className="label">Domain restriction (optional)
-            <input
-                type="text"
-                className="input is-primary"
-                name="domain"
-                placeholder="Members' emails must be @ this domain"
-                value={domain}
-                onChange={this.handleChange.bind(this)}
-            />
-          </label>
-        </div>
-        <div className="field">        
-          <label className="label">Members Only
-            <input
-                type="checkbox"
-                name="members_only"
-                checked={members_only}
-                onChange={this.handleChange.bind(this)}
-            />
-          </label>
-        </div>
-        <div className="field">
-          <div className='select is-info'>
-            <select
-                required="required"
-                name="sport_id"
-                value={sport_id}
-                onChange={this.handleChange.bind(this)}>
-                <option value="" disabled="disabled">Select a sport</option>
-                {(this.props.sports || []).map(sport => (
-                    <option key={sport.id} value={sport.id}>{sport.name}</option>
-                ))}
-            </select>
-          </div>
-        </div>
+      <form onSubmit={this.handleSubmit}>
+        <FormField description="Name">
+          <input
+              type="text"
+              className="input is-primary"
+              name="name"
+              required='required'
+              placeholder="Enter the league name"
+              value={name}
+              onChange={this.handleChange}
+          />
+        </FormField>
+        <FormField description="Description (optional)">
+          <textarea
+              className="textarea"
+              name="description"
+              placeholder="Description of this league"
+              value={description}
+              onChange={this.handleChange}
+          />
+        </FormField>
+        <FormField description="Domain restriction (optional)">
+          <input
+              type="text"
+              className="input is-primary"
+              name="domain"
+              placeholder="Members' emails must be @ this domain"
+              value={domain}
+              onChange={this.handleChange}
+          />
+        </FormField>
+        <FormField description="Members Only">
+          <input
+              type="checkbox"
+              name="members_only"
+              checked={members_only}
+              onChange={this.handleChange}
+          />
+        </FormField>
+        <SportSelectionField sport={sport_id} onChange={this.handleChange} sports={sports} />
         <button type="submit" disabled={this.isDisabled()} className="button is-primary">
           Create League
         </button>

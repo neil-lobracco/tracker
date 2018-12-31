@@ -2,6 +2,54 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { createMatch } from "../actions/index";
 
+const OpponentSelector = ({onChange, opponentId, opponents}) => {
+  return (
+    <div className="select">
+      <select onChange={onChange} value={opponentId || 'selectone'}>
+        <option key='selectone' value='selectone' disabled='disabled'>Select opponent</option>
+      {(opponents || []).map(player => (
+        <option key={player.id} value={player.id}>{player.name}</option>
+      ))}
+      </select>
+    </div>);
+};
+
+const WinnerSelector = ({opponent, onChange, winner}) => {
+  if (opponent == null) { return null; }
+  return (
+    <div className="control">
+      <label className="radio">Winner: </label>
+      <label className="radio">
+        <input type="radio" name="winner" value="player1" checked={winner == "player1"} onChange={onChange}/>
+        Me
+      </label>
+      <label className="radio">
+        <input type="radio" name="winner" value="player2" checked={winner == "player2"} onChange={onChange}/>
+        {opponent}
+      </label>
+      <label className="radio">
+        <input type="radio" name="winner" value="draw" checked={winner == "draw"} onChange={onChange}/>
+        Draw            
+      </label>
+    </div>);
+};
+
+const ScoreSelector = ({score, onChange}) => (
+  <div className='field'>
+    <label className='label'>Score (optional)</label>
+    <div className='control'>
+      <input className='input' name='score' placeholder='5-3' onChange={onChange} value={score}/>
+    </div>
+  </div>);
+
+const CommentBox= ({comment, onChange}) => (
+  <div className='field'>
+    <label className='label'>Comments (optional)</label>
+    <div className='control'>
+      <input className='input' name='comment' placeholder='A well fought match' onChange={onChange} value={comment}/>
+    </div>
+  </div>);
+
 const initialState = {
     opponentId: null,
     winner: null,
@@ -44,9 +92,7 @@ class ConnectedForm extends Component {
   }
 
   setComment(event) {
-    let comment = event.target.value;
-    if (!comment || comment.trim() == '') { comment = null; }
-    this.setState({ comment });
+    this.setState({ comment : event.target.value });
   }
 
   getScores() {
@@ -83,47 +129,15 @@ class ConnectedForm extends Component {
   }
 
   render() {
-    const {opponentId, winner } = this.state;
-    const opponent = (opponentId && this.props.players.find(p => p.id == opponentId));
+    const {opponentId, winner, score, comment } = this.state;
+    const { players, user } = this.props;
+    const opponent = (opponentId && players.find(p => p.id == opponentId));
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
-        <div className="select">
-          <select onChange={this.opponentSelected.bind(this)} value={opponentId || 'selectone'}>
-            <option key='selectone' value='selectone' disabled='disabled'>Select opponent</option>
-          {(this.props.players || []).filter(p => p.id != this.props.user.id).map(player => (
-            <option key={player.id} value={player.id}>{player.name}</option>
-          ))}
-          </select>
-        </div>
-        { opponentId != null && 
-          <div className="control">
-            <label className="radio">Winner: </label>
-            <label className="radio">
-              <input type="radio" name="winner" value="player1" checked={winner == "player1"} onChange={this.winnerSelected.bind(this)}/>
-              Me ({this.props.user.name})
-            </label>
-            <label className="radio">
-              <input type="radio" name="winner" value="player2" checked={winner == "player2"} onChange={this.winnerSelected.bind(this)}/>
-              {opponent ? opponent.name : 'Unknown user'}
-            </label>
-            <label className="radio">
-              <input type="radio" name="winner" value="draw" checked={winner == "draw"} onChange={this.winnerSelected.bind(this)}/>
-              Draw            
-            </label>
-          </div>
-        }
-        <div className='field'>
-          <label className='label'>Score (optional)</label>
-          <div className='control'>
-            <input className='input' name='score' placeholder='5-3' onChange={this.setScore.bind(this)} value={this.state.score}/>
-          </div>
-        </div>
-        <div className='field'>
-          <label className='label'>Comments (optional)</label>
-          <div className='control'>
-            <input className='input' name='comment' placeholder='A well fought match' onChange={this.setComment.bind(this)} value={this.state.comment}/>
-          </div>
-        </div>
+        <OpponentSelector onChange={this.opponentSelected.bind(this)} opponentId={opponentId} opponents={(players || []).filter(p => p.id != user.id)} />
+        <WinnerSelector winner={winner} onChange={this.winnerSelected.bind(this)} opponent={opponent && opponent.name} />
+        <ScoreSelector score={score} onChange={this.setScore.bind(this)} />
+        <CommentBox onChange={this.setComment.bind(this)} comment={comment} />
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE
         </button>

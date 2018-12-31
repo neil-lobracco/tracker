@@ -3,9 +3,10 @@ import { NavLink } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 
-const CurrentLeague = connect(state => ({leagues: state.leagues}))(({leagues}) => {
-	if (leagues.all != null) {
-		const league = leagues.all.find(l => l.id == leagues.current);
+const mapStateToProps = state => ({ all: state.leagues.all, current: state.leagues.current });
+const CurrentLeague = connect(mapStateToProps)(({all, current}) => {
+	if (all != null) {
+		const league = all.find(l => l.id == current);
 		if (league != null) {
 			return <span>Current League: {league.name}</span>;
 		}
@@ -17,7 +18,7 @@ const ChangeLeagueLink = withRouter(({location}) => (
 		activeClassName='hidden'>Change League
 	</NavLink>)
 );
-const LeagueWidget = () => {
+const LeagueWidget = React.memo(() => {
 	return (
 		<div className="navbar-item has-dropdown is-hoverable">
 			<a className="navbar-link">
@@ -28,5 +29,5 @@ const LeagueWidget = () => {
 			</div>
 		</div>
 	);
-};
+});
 export default LeagueWidget;

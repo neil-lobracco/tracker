@@ -15,13 +15,13 @@ const SelectableLeague = withRouter(
 const mapDispatchToProps = dispatch => {
   return {
     setLeague: (leagueId, current, location, history) => {
-		if (leagueId == current) { return; }
-		dispatch(setLeague(leagueId));
-		const locState = location.state;
-		if (locState && locState.from) {
-			history.push(locState.from);
-		}
-	},
+			if (leagueId == current) { return; }
+			dispatch(setLeague(leagueId));
+			const locState = location.state;
+			if (locState && locState.from) {
+				history.push(locState.from);
+			}
+		},
   };
 };
 

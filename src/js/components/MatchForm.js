@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { createMatch } from "../actions/index";
 
 const initialState = {
-    contestants: [],
+    opponentId: null,
     winner: null,
     comment: '',
     score: '',
@@ -16,7 +16,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 const mapStateToProps = state => {
-  return { players: state.players };
+  return { players: state.players, user: state.userContext.currentUser };
 };
 
 class ConnectedForm extends Component {
@@ -30,8 +30,8 @@ class ConnectedForm extends Component {
 
     const scores = this.getScores();
     this.props.createMatch({
-      player1_id: this.state.contestants[0].id,
-      player2_id: this.state.contestants[1].id,
+      player1_id: this.props.user.id,
+      player2_id: this.state.opponentId,
       player1_score: scores[0],
       player2_score: scores[1],
       comment: this.state.comment == '' ? null : this.state.comment,
@@ -39,11 +39,8 @@ class ConnectedForm extends Component {
     this.setState({ winner: null, comment: '', score: ''});
   }
 
-  playersSelected(event) {
-    const contestants = [].slice.call(event.target.selectedOptions).map(o =>
-      this.props.players.find(p => p.id == parseInt(o.value))
-    );
-    this.setState({contestants});
+  opponentSelected(event) {
+    this.setState({opponentId: parseInt(event.target.value)});
   }
 
   setComment(event) {
@@ -78,7 +75,7 @@ class ConnectedForm extends Component {
   }
 
   canSubmit() {
-    return this.state.contestants.length == 2 && this.getScores() != null;
+    return this.state.opponentId != null && this.getScores() != null;
   }
 
   winnerSelected(event) {
@@ -86,31 +83,28 @@ class ConnectedForm extends Component {
   }
 
   render() {
-    const {contestants, winner } = this.state;
+    const {opponentId, winner } = this.state;
+    const opponent = (opponentId && this.props.players.find(p => p.id == opponentId));
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
-        <div className='columns'>
-          <div className="select is-multiple column">
-            <select multiple id="players" onChange={this.playersSelected.bind(this)}>
-            {(this.props.players || []).filter(p => p.id).map(player => (
-              <option key={player.id} value={player.id}>{player.name}</option>
-            ))}
-            </select>
-          </div>
-          <div className='column'>
-            <label>Select the two contestants (Command or Ctrl-click to select multiple)</label>
-          </div>
+        <div className="select">
+          <select onChange={this.opponentSelected.bind(this)} value={opponentId || 'selectone'}>
+            <option key='selectone' value='selectone' disabled='disabled'>Select opponent</option>
+          {(this.props.players || []).filter(p => p.id != this.props.user.id).map(player => (
+            <option key={player.id} value={player.id}>{player.name}</option>
+          ))}
+          </select>
         </div>
-        { contestants.length == 2 && 
+        { opponentId != null && 
           <div className="control">
             <label className="radio">Winner: </label>
             <label className="radio">
               <input type="radio" name="winner" value="player1" checked={winner == "player1"} onChange={this.winnerSelected.bind(this)}/>
-              {contestants[0].name}
+              Me ({this.props.user.name})
             </label>
             <label className="radio">
               <input type="radio" name="winner" value="player2" checked={winner == "player2"} onChange={this.winnerSelected.bind(this)}/>
-              {contestants[1].name}
+              {opponent ? opponent.name : 'Unknown user'}
             </label>
             <label className="radio">
               <input type="radio" name="winner" value="draw" checked={winner == "draw"} onChange={this.winnerSelected.bind(this)}/>

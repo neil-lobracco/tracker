@@ -15,7 +15,11 @@ const getMatchDescription = (match, players, user) => {
   }
   return desc;
 };
-const getColumns = (players, user) => {
+const getEloChange = (match, eloEntries) => {
+  if (!eloEntries) { return null; }
+  
+};
+const getColumns = (players, user, eloEntries) => {
   return [
     {
       Header: 'Time',
@@ -33,6 +37,11 @@ const getColumns = (players, user) => {
       accessor: (m) => getMatchScore(m),
     },
     {
+      id: 'elochange',
+      Header: 'Elo Change',
+      accessor: (m) => getEloChange(m, eloEntries),
+    },
+    {
       Header: 'Comment',
       accessor: 'comment',
     },
@@ -45,14 +54,14 @@ const getMatchScore = (match) => {
 };
 
 const mapStateToProps = state => {
-  return { matches: state.matches, players: state.players, user: state.userContext.currentUser };
+  return { matches: state.matches, players: state.players, user: state.userContext.currentUser, eloEntries: state.eloEntries };
 };
 
-const MatchList = connect(mapStateToProps)(({ matches, players, user }) => (
+const MatchList = connect(mapStateToProps)(({ matches, players, user, eloEntries }) => (
   matches != null &&
   <ReactTable
     data={matches}
-    columns={getColumns(players, user)}
+    columns={getColumns(players, user, eloEntries)}
     minRows='2'
   />
 ));

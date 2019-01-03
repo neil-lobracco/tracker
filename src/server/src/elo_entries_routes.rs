@@ -18,6 +18,7 @@ pub fn get_elo_entries_for_player(conn: DbConn, league_id: LeagueId, player_id: 
                     match_id: entry.match_id,
                     created_at: entry.created_at,
                     score: entry.score,
+                    league_membership_id: entry.league_membership_id,
                 }
             }).collect())
         })
@@ -39,6 +40,7 @@ pub fn get_elo_entries(conn: DbConn, league_id: LeagueId) -> QueryResult<Json<Ve
                     match_id: entry.0.match_id,
                     created_at: entry.0.created_at,
                     score: entry.0.score,
+                    league_membership_id: entry.0.league_membership_id,
                 }
             }).collect())
         })

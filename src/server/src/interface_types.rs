@@ -50,6 +50,7 @@ pub mod responses {
         pub match_id: Option<i32>,
         pub player_id: i32,
         pub score: f64,
+        pub league_membership_id: i32,
     }
     #[derive(Serialize)]
     pub struct User {

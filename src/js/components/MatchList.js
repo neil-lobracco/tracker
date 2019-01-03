@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import ReactTable from "react-table";
 import 'react-table/react-table.css'
-import { formatRelative } from 'date-fns';
+import { formatRelative, isBefore, isEqual } from 'date-fns';
 const getMatchDescription = (match, players, user) => {
   if (!players || players.length == 0) { return ''; }
   const player1_name = players.find(p => p.id == match.player1_id).name;
@@ -17,7 +17,13 @@ const getMatchDescription = (match, players, user) => {
 };
 const getEloChange = (match, eloEntries) => {
   if (!eloEntries) { return null; }
-  
+  const relevantEntry = eloEntries.find(e => e.match_id == match.id);
+  if (!relevantEntry) { return null; }
+  const lastTwo = eloEntries.filter(e => e.league_membership_id == relevantEntry.league_membership_id)
+    .filter(e => (isEqual(e.created_at, match.created_at)) || isBefore(e.created_at, match.created_at)).slice(-2);
+  if (lastTwo.length != 2) { return null; }
+  return '±' + Math.round(Math.abs(lastTwo[0].score - lastTwo[1].score) * 10) / 10;
+
 };
 const getColumns = (players, user, eloEntries) => {
   return [

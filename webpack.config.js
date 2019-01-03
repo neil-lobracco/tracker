@@ -2,7 +2,9 @@ const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const webpack = require('webpack');
 
+const supportedLocales = ['en'];
 
 module.exports = {
     module: {
@@ -43,7 +45,11 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: "[name]-[contenthash].css",
             chunkFilename: "[id]-[contenthash].css"
-        })
+        }),
+		new webpack.ContextReplacementPlugin(
+				/date\-fns[\/\\]/,
+				new RegExp(`[/\\\\\](${supportedLocales.join('|')})[/\\\\\]`)
+    	)
     ],
     output: {
         filename: '[name]-[contenthash].js'

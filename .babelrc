@@ -1,6 +1,15 @@
 {
     "presets": [
-        "env", "react"
+        [
+            "env",
+        {
+            "targets": {
+                "esmodules": true
+            },
+            "modules": false
+        }
+        ],
+        "react"
     ],
     "plugins": ["transform-object-rest-spread", "babel-plugin-syntax-dynamic-import"]
 }

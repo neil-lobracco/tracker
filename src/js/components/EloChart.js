@@ -41,7 +41,7 @@ const getMultiSeriesData = ({idToEntries, entries, players }) => {
       idToEntries[prop].reverse();
     }
   }
-  const sortedEntries = entries.sort((e1, e2) => e1.created_at - e2.created_at);
+  const sortedEntries = entries.concat().sort((e1, e2) => e1.created_at - e2.created_at);
   const firstDataPoint = new Date(new Date(sortedEntries[0].created_at.getTime()).setHours(23,59,59,999));
   const lastDate = sortedEntries[sortedEntries.length - 1].created_at;
   let currentDataPoint = firstDataPoint;

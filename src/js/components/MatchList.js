@@ -42,18 +42,21 @@ const getColumns = (players, user, eloEntries) => {
       Header: 'Time',
       accessor: 'created_at',
       Cell: (props) => <span title={props.value} className='relative-date'>{formatRelative(props.value, new Date())}</span>,
+      minWidth: 150,
     },
     {
       id: 'outcome',
       Header: 'Outcome',
       accessor: (m) => () => getMatchDescription(m, players, user),
       Cell: (row) => row.value(),
+      minWidth: 200,
     },
     {
       id: 'score',
       Header: 'Score',
       accessor: (m) => () => getMatchScore(m),
       Cell: (row) => row.value(),
+      maxWidth: 75,
     },
     {
       id: 'elochange',

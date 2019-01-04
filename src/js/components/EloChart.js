@@ -61,8 +61,8 @@ const getMultiSeriesData = ({idToEntries, entries, players }) => {
       //line: {shape: 'hv'},
       mode: 'lines+markers',
       name : seriesName(k),
-      //marker: { size: 4 },
-      //line: {width: 1 },
+      marker: { size: 4 },
+      line: {width: 1.5 },
     };
   });
   return series;

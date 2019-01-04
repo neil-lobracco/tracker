@@ -17,16 +17,6 @@ const SportSelectionField = React.memo(({onChange, sport, sports}) => (
     </select>
   </FormField>));
 
-const mapStateToProps = state => ({
-    sports: state.sports,
-});
-const mapDispatchToProps = dispatch => {
-  return {
-    loadSports: () => dispatch(loadSports()),
-    createLeague: (league) => dispatch(createLeague(league))
-  };
-};
-
 const initialState = {
     members_only: false,
     name: '',
@@ -108,7 +98,7 @@ class LeagueForm extends PureComponent {
               onChange={this.handleChange}
           />
         </FormField>
-        <SportSelectionField sport={sport_id} onChange={this.handleChange} sports={sports} />
+        <SportSelectionField sport={sport_id} onChange={this.handleChange} sports={this.props.sports} />
         <button type="submit" disabled={this.isDisabled()} className="button is-primary">
           Create League
         </button>
@@ -117,4 +107,13 @@ class LeagueForm extends PureComponent {
   }
 }
 
+const mapStateToProps = state => ({
+  sports: state.sports,
+});
+const mapDispatchToProps = dispatch => {
+  return {
+    loadSports: () => dispatch(loadSports()),
+    createLeague: (league) => dispatch(createLeague(league))
+  };
+};
 export default connect(mapStateToProps, mapDispatchToProps)(LeagueForm);

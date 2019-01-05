@@ -41,6 +41,7 @@ pub fn join_league(conn: DbConn, user: User, lm: Json<requests::LeagueMembership
             league_membership_id: created_lm.id,
             match_id: None,
             score: 1500.0,
+            created_at: None,
         }).execute(&*conn).expect("Unable to create EE.");
     Ok( Json( responses::LeagueMembership { league_id: created_lm.league_id, role: created_lm.role }))
 }
@@ -57,6 +58,7 @@ pub fn create_league(conn: DbConn, user: User, league: Json<NewLeague>) -> Resul
         .values(&NewEloEntry {
             league_membership_id: created_lm.id,
             match_id: None,
+            created_at: None,
             score: 1500.0,
         }).execute(&*conn).expect("Unable to create EE.");
     sports::table

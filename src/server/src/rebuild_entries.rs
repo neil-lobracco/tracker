@@ -1,30 +1,14 @@
-#[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate serde_derive;
-mod models;
-mod schema;
-mod scoring;
 use diesel::pg::PgConnection;
-use self::models::*;
-use self::schema::*;
-use self::diesel::prelude::*;
+use super::models::*;
+use super::schema::*;
+use super::diesel::prelude::*;
+use super::*;
 
 
-#[derive(Insertable)]
-#[table_name = "elo_entries"]
-struct NewEloEntryWithDate {
-    pub score: f64,
-    pub match_id: Option<i32>,
-    pub created_at: chrono::DateTime<chrono::prelude::Utc>,
-    pub league_membership_id: i32,
-}
-
-fn main() {
-	let conn: PgConnection = diesel::connection::Connection::establish(&std::env::var("DATABASE_URL").unwrap()).unwrap();
-	diesel::delete(elo_entries::table.filter(elo_entries::match_id.is_not_null())).execute(&conn).expect("Couldn't delete entries");
-	let matches: Vec<Match> = matches::table.order(matches::created_at.asc()).load::<Match>(&conn).unwrap();
-	let league_memberships_vec: Vec<LeagueMembership> = league_memberships::table.load::<LeagueMembership>(&conn).unwrap();
+pub fn rebuild_entries(conn: &PgConnection) {
+	diesel::delete(elo_entries::table.filter(super::elo_entries::match_id.is_not_null())).execute(conn).expect("Couldn't delete entries");
+	let matches: Vec<Match> = matches::table.order(matches::created_at.asc()).load::<Match>(conn).unwrap();
+	let league_memberships_vec: Vec<LeagueMembership> = league_memberships::table.load::<LeagueMembership>(conn).unwrap();
 	let mut league_memberships = std::collections::HashMap::new();
 	for m in league_memberships_vec {
 		league_memberships.insert((m.player_id, m.league_id), m.id);
@@ -32,7 +16,7 @@ fn main() {
 	let mut current_scores = std::collections::HashMap::new();
 	let ee = elo_entries::table.inner_join(league_memberships::table.on(league_memberships::id.eq(elo_entries::league_membership_id)))
 		.select((elo_entries::score, league_memberships::id));
-	for entry in ee.load::<(f64, i32)>(&conn).expect("couldn't load entries") {
+	for entry in ee.load::<(f64, i32)>(conn).expect("couldn't load entries") {
 		current_scores.insert(entry.1, entry.0);
 	}
 	let mut new_entries = Vec::new();
@@ -44,9 +28,9 @@ fn main() {
 		let (r1p, r2p) = scoring::get_new_scores(*r1, *r2, m.player1_score, m.player2_score);
 		current_scores.insert(*lmid1, r1p);
 		current_scores.insert(*lmid2, r2p);
-		new_entries.push(NewEloEntryWithDate { score: r1p, league_membership_id: *lmid1, match_id: Some(m.id), created_at: m.created_at });
-		new_entries.push(NewEloEntryWithDate { score: r2p, league_membership_id: *lmid2, match_id: Some(m.id), created_at: m.created_at });
+		new_entries.push(NewEloEntry { score: r1p, league_membership_id: *lmid1, match_id: Some(m.id), created_at: Some(m.created_at) });
+		new_entries.push(NewEloEntry { score: r2p, league_membership_id: *lmid2, match_id: Some(m.id), created_at: Some(m.created_at) });
 	}
 	println!("Ok, inserting {} entries.",new_entries.len());
-  	diesel::insert_into(elo_entries::table).values(&new_entries).execute(&conn).expect("Insertion failed!");
+  	diesel::insert_into(elo_entries::table).values(&new_entries).execute(conn).expect("Insertion failed!");
 }

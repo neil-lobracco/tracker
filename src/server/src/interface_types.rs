@@ -88,13 +88,16 @@ pub mod requests {
         pub name: String,
     }
 
-    #[derive(Deserialize)]
-    pub struct CreateMatch {
+use super::super::schema::matches;
+    #[derive(Deserialize, AsChangeset)]
+    #[table_name="matches"]
+    pub struct CreateOrUpdateMatch {
         pub comment: Option<String>,
         pub player1_id: i32,
         pub player2_id: i32,
         pub player1_score: f64,
         pub player2_score: f64,
+        pub created_at: Option<chrono::DateTime<chrono::prelude::Utc>>,
     }
 
     #[derive(Deserialize)]

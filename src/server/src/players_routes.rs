@@ -52,6 +52,7 @@ pub fn create_player(
             .values(&NewEloEntry {
                 league_membership_id: lm.id,
                 match_id: None,
+                created_at: None,
                 score: 1500.0,
             }).execute(&*conn)?;
         Ok(player)

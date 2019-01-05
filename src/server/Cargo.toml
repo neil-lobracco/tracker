@@ -19,8 +19,8 @@ features = ["json"]
 
 [[bin]]
 name = "server"
-path = "src/main.rs"
+path = "src/server.rs"
 
 [[bin]]
-name = "rebuild_entries"
-path = "src/rebuild_entries.rs"
+name = "rebuild_all_entries"
+path = "src/rebuild_all_entries.rs"

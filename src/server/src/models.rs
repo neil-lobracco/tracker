@@ -91,6 +91,7 @@ pub struct NewMatch {
     pub player1_score: f64,
     pub player2_score: f64,
     pub league_id: i32,
+    pub created_at: Option<chrono::DateTime<chrono::prelude::Utc>>,
 }
 
 #[derive(Queryable, Associations)]
@@ -110,6 +111,7 @@ pub struct NewEloEntry {
     pub score: f64,
     pub league_membership_id: i32,
     pub match_id: Option<i32>,
+    pub created_at: Option<chrono::DateTime<chrono::prelude::Utc>>,
 }
 
 use diesel::sql_types::{Integer, Double};

@@ -73,6 +73,7 @@ fn main() {
                 players_routes::get_players,
                 players_routes::create_player,
                 matches_routes::create_match,
+                matches_routes::update_match,
                 matches_routes::get_matches,
                 matches_routes::get_matches_for_player,
                 elo_entries_routes::get_elo_entries_for_player,

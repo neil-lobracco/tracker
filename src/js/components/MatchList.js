@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import ReactTable from "react-table";
 import 'react-table/react-table.css';
 import { formatRelative } from 'date-fns';
+import { setEditingMatch } from '../actions/matches';
 
 const getMatchDescription = (match, players, user) => {
   if (!players || players.length == 0) { return ''; }
@@ -36,8 +37,8 @@ const getMatchScore = (match) => {
   } else return '';
 };
 
-const getColumns = (players, user, eloEntries) => {
-  return [
+const getColumns = (players, user, eloEntries, currentMembership, editMatchHandler) => {
+  let columns = [
     {
       Header: 'Time',
       accessor: 'created_at',
@@ -69,18 +70,31 @@ const getColumns = (players, user, eloEntries) => {
       accessor: 'comment',
     },
   ];
+  if (currentMembership && currentMembership.role == 'admin') {
+    columns.push({
+      Header: 'Edit',
+      accessor: 'id',
+      maxWidth: 40,
+      Cell: (row) => <a className='button' data-matchid={row.value} onClick={editMatchHandler}>⚙️</a>
+    });
+  }
+  return columns;
 };
 
 const mapStateToProps = state => {
-  return { matches: state.matches, players: state.players, user: state.userContext.currentUser, eloEntries: state.eloEntries };
+  return { matches: state.matches.all, players: state.players, user: state.userContext.currentUser, eloEntries: state.eloEntries, currentMembership: state.leagues.currentMembership };
+};
+const mapDispatchToProps = dispatch => {
+  return { setEditingMatch: (matchid) => dispatch(setEditingMatch(matchid))};
 };
 
-const MatchList = connect(mapStateToProps)(({ matches, players, user, eloEntries }) => (
-  matches != null &&
-  <ReactTable
-    data={matches}
-    columns={getColumns(players, user, eloEntries)}
-    minRows='2'
-  />
-));
+const MatchList = connect(mapStateToProps, mapDispatchToProps)(({ matches, players, user, eloEntries, currentMembership, setEditingMatch }) => {
+  const editMatchHandler = (e) => setEditingMatch(matches.find(m => m.id == e.target.dataset.matchid));
+  return matches != null &&
+    <ReactTable
+      data={matches}
+      columns={getColumns(players, user, eloEntries, currentMembership, editMatchHandler)}
+      minRows='2'
+    />
+});
 export default MatchList;

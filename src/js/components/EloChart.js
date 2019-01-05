@@ -128,7 +128,7 @@ const getChartLayout = ({singleSeries, playerId, players, width, height, title})
 
 
 const mapStateToProps = state => {
-  return { players: state.players, matches: state.matches };
+  return { players: state.players, matches: state.matches.all };
 };
 
 const EloChart = connect(mapStateToProps)(({matches, players, entries, ...rest}) => {

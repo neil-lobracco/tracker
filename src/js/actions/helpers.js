@@ -21,4 +21,10 @@ export const postJson = (url, json, getState, dispatch) => fetchJson(url, {
 		body: JSON.stringify(json),
     }, getState, dispatch);
 
+export const putJson = (url, json, getState, dispatch) => fetchJson(url, {
+    method: 'PUT',
+    headers : {"Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(json),
+}, getState, dispatch);
+
 export const simpleFetch = (url, success, error) => () => (dispatch, getState) => fetchJson(url, undefined, getState, dispatch).then(success.bind(null,dispatch), error || (err => console.error(err)));

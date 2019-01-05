@@ -88,7 +88,7 @@ pub mod requests {
         pub name: String,
     }
 
-use super::super::schema::matches;
+    use super::super::schema::matches;
     #[derive(Deserialize, AsChangeset)]
     #[table_name="matches"]
     pub struct CreateOrUpdateMatch {

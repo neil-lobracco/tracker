@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { createMatch } from "../actions/index";
+import { createMatch, updateMatch, setEditingMatch } from "../actions/matches";
 
 const OpponentSelector = ({onChange, opponentId, opponents}) => {
   return (
@@ -59,7 +59,9 @@ const initialState = {
 
 const mapDispatchToProps = dispatch => {
   return {
-    createMatch: (match) => dispatch(createMatch(match))
+    createMatch: (match) => dispatch(createMatch(match)),
+    updateMatch: (match) => dispatch(updateMatch(match)),
+    cancelEditing: () => dispatch(setEditingMatch(null)),
   };
 };
 
@@ -67,23 +69,53 @@ const mapStateToProps = state => {
   return { players: state.players, user: state.userContext.currentUser };
 };
 
+const getMatchScore = (match) => {
+  if (match.player1_score + match.player2_score != 1) {
+    return [match.player1_score, match.player2_score].sort().reverse().join('-');
+  } else return '';
+};
+
 class ConnectedForm extends Component {
-  constructor() {
-    super();
-    this.state = initialState;
+  constructor(props) {
+    super(props);
+    this.state = {...initialState};
+    const m = props.currentlyEditing;
+    if (m) {
+      this.state.opponentId = m.player1_id == props.user.id ? m.player2_id : m.player1_id;
+      this.state.winner = m.player1_score == m.player2_score ? 'draw' : m.player1_score > m.player2_score ? 'player1' : 'player2';
+      this.state.comment = m.comment || '';
+      this.state.score = getMatchScore(m);
+    }
+    this.opponentSelected = this.opponentSelected.bind(this);
+    this.setComment = this.setComment.bind(this);
+    this.setScore = this.setScore.bind(this);
+    this.winnerSelected = this.winnerSelected.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleSubmit(event) {
     event.preventDefault();
 
     const scores = this.getScores();
-    this.props.createMatch({
-      player1_id: this.props.user.id,
-      player2_id: this.state.opponentId,
-      player1_score: scores[0],
-      player2_score: scores[1],
-      comment: this.state.comment == '' ? null : this.state.comment,
-    });
+    if (this.props.currentlyEditing) {
+      this.props.updateMatch({
+        player1_id: this.props.user.id,
+        player2_id: this.state.opponentId,
+        player1_score: scores[0],
+        player2_score: scores[1],
+        comment: this.state.comment == '' ? null : this.state.comment,
+        id: this.props.currentlyEditing.id,
+      });
+      this.props.cancelEditing();
+    } else {
+      this.props.createMatch({
+        player1_id: this.props.user.id,
+        player2_id: this.state.opponentId,
+        player1_score: scores[0],
+        player2_score: scores[1],
+        comment: this.state.comment == '' ? null : this.state.comment,
+      });
+    }
     this.setState({ winner: null, comment: '', score: ''});
   }
 
@@ -130,17 +162,22 @@ class ConnectedForm extends Component {
 
   render() {
     const {opponentId, winner, score, comment } = this.state;
-    const { players, user } = this.props;
+    const { players, user, currentlyEditing, cancelEditing } = this.props;
     const opponent = (opponentId && players.find(p => p.id == opponentId));
     return (
-      <form onSubmit={this.handleSubmit.bind(this)}>
-        <OpponentSelector onChange={this.opponentSelected.bind(this)} opponentId={opponentId} opponents={(players || []).filter(p => p.id != user.id)} />
-        <WinnerSelector winner={winner} onChange={this.winnerSelected.bind(this)} opponent={opponent && opponent.name} />
-        <ScoreSelector score={score} onChange={this.setScore.bind(this)} />
-        <CommentBox onChange={this.setComment.bind(this)} comment={comment} />
+      <form onSubmit={this.handleSubmit}>
+        <OpponentSelector onChange={this.opponentSelected} opponentId={opponentId} opponents={(players || []).filter(p => p.id != user.id)} />
+        <WinnerSelector winner={winner} onChange={this.winnerSelected} opponent={opponent && opponent.name} />
+        <ScoreSelector score={score} onChange={this.setScore} />
+        <CommentBox onChange={this.setComment} comment={comment} />
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE
         </button>
+        { currentlyEditing && 
+          <button type='button' className="button is-warning" onClick={cancelEditing}>
+            Cancel editing
+          </button>
+        }
       </form>
     );
   }

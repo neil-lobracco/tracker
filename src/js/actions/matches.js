@@ -12,7 +12,11 @@ export const receiveMatches = (matches) => ({ type: RECEIVE_MATCHES, payload: ma
 export const setEditingMatch = match => ({ type: EDIT_MATCH, payload: match });
 
 export const createMatch = (match) => (dispatch, getState) => postJson('/api/matches', match, getState, dispatch).then(json => {
-	dispatch(addMatch(json));
+	if (match.created_at) {
+		dispatch(loadMatches());
+	} else {
+		dispatch(addMatch(json));
+	}
 	dispatch(loadPlayers());
 	dispatch(loadEloEntries());
 }, err => console.error(err));

@@ -42,17 +42,6 @@ pub fn create_match(
     _admin: Admin,
 ) -> Result<Json<Match>, diesel::result::Error> {
     let the_match = the_match_json.into_inner();
-    let player1_lm_id = league_memberships::table
-        .filter(league_memberships::player_id.eq(the_match.player1_id))
-        .filter(league_memberships::league_id.eq(*league_id))
-        .select(league_memberships::id)
-        .first::<i32>(&*conn)?;
-    let player2_lm_id = league_memberships::table
-        .filter(league_memberships::player_id.eq(the_match.player2_id))
-        .filter(league_memberships::league_id.eq(*league_id))
-        .select(league_memberships::id)
-        .first::<i32>(&*conn)?;
-
     let new_match = NewMatch {
         player1_id: the_match.player1_id,
         player2_id: the_match.player2_id,
@@ -62,29 +51,50 @@ pub fn create_match(
         league_id: *league_id,
         created_at: the_match.created_at,
     };
-    let current_elos = fetch_current_elo(&conn, &[the_match.player1_id, the_match.player2_id], &league_id);
-    let (p1_elo, p2_elo) = (current_elos.get(&the_match.player1_id).unwrap(), current_elos.get(&the_match.player2_id).unwrap());
-    let (r1p, r2p) = scoring::get_new_scores(*p1_elo, *p2_elo, the_match.player1_score, the_match.player2_score);
-    let created_match = conn.transaction::<_, diesel::result::Error, _>(|| {
-        let created_match: Match = diesel::insert_into(matches::table)
-            .values(&new_match)
-            .get_result(&*conn)?;
-        let p1_elo_entry = NewEloEntry {
-            league_membership_id: player1_lm_id,
-            score: r1p,
-            match_id: Some(created_match.id),
-            created_at: None,
-        };
-        let p2_elo_entry = NewEloEntry {
-            league_membership_id: player2_lm_id,
-            score: r2p,
-            match_id: Some(created_match.id),
-            created_at: None,
-        };
-        diesel::insert_into(elo_entries::table)
-            .values(&vec![p1_elo_entry, p2_elo_entry])
-            .execute(&*conn)?;
-        Ok(created_match)
-    })?;
+    let created_match = if the_match.created_at.is_some() {
+        conn.transaction::<_, diesel::result::Error, _>(|| {
+            let created_match: Match = diesel::insert_into(matches::table)
+                .values(&new_match)
+                .get_result(&*conn)?;
+            super::rebuild_entries::rebuild_entries(&*conn);
+            Ok(created_match)
+        })
+    } else {
+        let player1_lm_id = league_memberships::table
+            .filter(league_memberships::player_id.eq(the_match.player1_id))
+            .filter(league_memberships::league_id.eq(*league_id))
+            .select(league_memberships::id)
+            .first::<i32>(&*conn)?;
+        let player2_lm_id = league_memberships::table
+            .filter(league_memberships::player_id.eq(the_match.player2_id))
+            .filter(league_memberships::league_id.eq(*league_id))
+            .select(league_memberships::id)
+            .first::<i32>(&*conn)?;
+
+        let current_elos = fetch_current_elo(&conn, &[the_match.player1_id, the_match.player2_id], &league_id);
+        let (p1_elo, p2_elo) = (current_elos.get(&the_match.player1_id).unwrap(), current_elos.get(&the_match.player2_id).unwrap());
+        let (r1p, r2p) = scoring::get_new_scores(*p1_elo, *p2_elo, the_match.player1_score, the_match.player2_score);
+        conn.transaction::<_, diesel::result::Error, _>(|| {
+            let created_match: Match = diesel::insert_into(matches::table)
+                .values(&new_match)
+                .get_result(&*conn)?;
+            let p1_elo_entry = NewEloEntry {
+                league_membership_id: player1_lm_id,
+                score: r1p,
+                match_id: Some(created_match.id),
+                created_at: None,
+            };
+            let p2_elo_entry = NewEloEntry {
+                league_membership_id: player2_lm_id,
+                score: r2p,
+                match_id: Some(created_match.id),
+                created_at: None,
+            };
+            diesel::insert_into(elo_entries::table)
+                .values(&vec![p1_elo_entry, p2_elo_entry])
+                .execute(&*conn)?;
+            Ok(created_match)
+        })
+    }?;
     Ok(Json(created_match))
 }

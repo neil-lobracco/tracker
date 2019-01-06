@@ -73,9 +73,10 @@ const getColumns = (players, user, eloEntries, currentMembership, editMatchHandl
   if (currentMembership && currentMembership.role == 'admin') {
     columns.push({
       Header: 'Edit',
-      accessor: 'id',
+      id: 'edit',
+      accessor: (m) => [m.player1_id, m.player2_id].includes(user.id) && m.id,
       maxWidth: 40,
-      Cell: (row) => <a className='button' data-matchid={row.value} onClick={editMatchHandler}>⚙️</a>
+      Cell: (row) => row.value && <a className='edit-match' data-matchid={row.value} onClick={editMatchHandler}>⚙️</a>
     });
   }
   return columns;

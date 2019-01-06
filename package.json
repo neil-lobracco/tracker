@@ -44,6 +44,7 @@
     "date-fns": "^2.0.0-alpha.26",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "plotly.js-basic-dist": "^1.43.1",
+    "react-datepicker": "^2.0.0",
     "react-google-login": "^4.0.0",
     "react-table": "^6.8.6",
     "uglifyjs-webpack-plugin": "^2.1.0"

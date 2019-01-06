@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { createMatch, updateMatch, setEditingMatch } from "../actions/matches";
+import FormField from './FormField';
+import Loadable from 'react-loadable';
+import "react-datepicker/dist/react-datepicker.css";
 
 const OpponentSelector = ({onChange, opponentId, opponents}) => {
   return (
@@ -35,26 +38,42 @@ const WinnerSelector = ({opponent, onChange, winner}) => {
 };
 
 const ScoreSelector = ({score, onChange}) => (
-  <div className='field'>
-    <label className='label'>Score (optional)</label>
-    <div className='control'>
-      <input className='input' name='score' placeholder='5-3' onChange={onChange} value={score}/>
-    </div>
-  </div>);
+  <FormField description='Score (optional)'>
+    <input className='input' name='score' placeholder='5-3' onChange={onChange} value={score}/>
+  </FormField>);
 
 const CommentBox= ({comment, onChange}) => (
-  <div className='field'>
-    <label className='label'>Comments (optional)</label>
-    <div className='control'>
-      <input className='input' name='comment' placeholder='A well fought match' onChange={onChange} value={comment}/>
+  <FormField description='Comments (optional)'>
+    <input className='input' name='comment' placeholder='A well fought match' onChange={onChange} value={comment}/>
+  </FormField>);
+
+const LoadableDatePicker = Loadable({
+  loading: () => <div>Loading...</div>,
+  loader: () => import( /* webpackPrefetch: true */ 'react-datepicker'),
+});
+
+const DatetimeChooser = ({time, onChange}) => (
+  <FormField description='Match time'>
+    <div>
+      <LoadableDatePicker 
+          selected={time ? new Date(time) : null} 
+          onChange={onChange} 
+          showTimeSelect
+          timeFormat="HH:mm"
+          timeIntervals={15}
+          dateFormat="yyyy-MM-dd h:mm aa"
+          placeholderText="Use default"
+          timeCaption="Time"/>
     </div>
-  </div>);
+  </FormField>
+);
 
 const initialState = {
     opponentId: null,
     winner: null,
     comment: '',
     score: '',
+    time: null,
 };
 
 const mapDispatchToProps = dispatch => {
@@ -85,10 +104,12 @@ class ConnectedForm extends Component {
       this.state.winner = m.player1_score == m.player2_score ? 'draw' : m.player1_score > m.player2_score ? 'player1' : 'player2';
       this.state.comment = m.comment || '';
       this.state.score = getMatchScore(m);
+      this.state.time = m.created_at;
     }
     this.opponentSelected = this.opponentSelected.bind(this);
     this.setComment = this.setComment.bind(this);
     this.setScore = this.setScore.bind(this);
+    this.setTime = this.setTime.bind(this);
     this.winnerSelected = this.winnerSelected.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -97,24 +118,19 @@ class ConnectedForm extends Component {
     event.preventDefault();
 
     const scores = this.getScores();
+    const match = {
+      player1_id: this.props.user.id,
+      player2_id: this.state.opponentId,
+      player1_score: scores[0],
+      player2_score: scores[1],
+      comment: this.state.comment == '' ? null : this.state.comment,
+      created_at: this.state.time,
+    };
     if (this.props.currentlyEditing) {
-      this.props.updateMatch({
-        player1_id: this.props.user.id,
-        player2_id: this.state.opponentId,
-        player1_score: scores[0],
-        player2_score: scores[1],
-        comment: this.state.comment == '' ? null : this.state.comment,
-        id: this.props.currentlyEditing.id,
-      });
+      this.props.updateMatch({ ...match, id: this.props.currentlyEditing.id });
       this.props.cancelEditing();
     } else {
-      this.props.createMatch({
-        player1_id: this.props.user.id,
-        player2_id: this.state.opponentId,
-        player1_score: scores[0],
-        player2_score: scores[1],
-        comment: this.state.comment == '' ? null : this.state.comment,
-      });
+      this.props.createMatch(match);
     }
     this.setState({ winner: null, comment: '', score: ''});
   }
@@ -125,6 +141,10 @@ class ConnectedForm extends Component {
 
   setComment(event) {
     this.setState({ comment : event.target.value });
+  }
+
+  setTime(time) {
+    this.setState({ time });
   }
 
   getScores() {
@@ -161,7 +181,7 @@ class ConnectedForm extends Component {
   }
 
   render() {
-    const {opponentId, winner, score, comment } = this.state;
+    const {opponentId, winner, score, comment, time } = this.state;
     const { players, user, currentlyEditing, cancelEditing } = this.props;
     const opponent = (opponentId && players.find(p => p.id == opponentId));
     return (
@@ -170,6 +190,7 @@ class ConnectedForm extends Component {
         <WinnerSelector winner={winner} onChange={this.winnerSelected} opponent={opponent && opponent.name} />
         <ScoreSelector score={score} onChange={this.setScore} />
         <CommentBox onChange={this.setComment} comment={comment} />
+        <DatetimeChooser onChange={this.setTime} time={time} />
         <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
           SAVE
         </button>

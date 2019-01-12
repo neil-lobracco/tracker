@@ -2,7 +2,11 @@ import React from 'react';
 import { connect } from "react-redux";
 import { formatRelative } from 'date-fns';
 
+const round = (score) => Math.round(score * 10) / 10;
 const resultToKey = { '-1': 'losses', 0: 'draws', 1: 'wins' };
+const winPercent = (selfElo, opponentElo) => {
+    return (1 / (1 + (Math.pow(10,((opponentElo - selfElo) / 400))))) * 100;
+};
 const getResults = (playerId, players, matches) => {
     if (!playerId || !players || !matches) { return []; }
     let matchups = {};
@@ -15,10 +19,11 @@ const getResults = (playerId, players, matches) => {
         if (!matchups[otherPlayerId]) { matchups[otherPlayerId] = { wins: 0, losses: 0, draws: 0}; }
         matchups[otherPlayerId][resultToKey[playerResult]]++;
     }
+    const selfElo = players.find(p => p.id == playerId).elo;
     let result = [];
     for (let [pid, outcomes] of Object.entries(matchups)) {
-        let playerName = players.find(p => p.id == pid).name;
-        result.push({name: playerName, results: outcomes, id: pid});
+        let player = players.find(p => p.id == pid);
+        result.push({name: player.name, winPercent: winPercent(selfElo, player.elo), results: outcomes, id: pid});
     }
     return result;
 };
@@ -32,6 +37,7 @@ const HeadToHead = ({playerId, players, matches}) => {
                     <tr>
                         <th>Opponent</th>
                         <th>Record</th>
+                        <th>Projected Win %</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,6 +45,7 @@ const HeadToHead = ({playerId, players, matches}) => {
                         <tr key={row.id}>
                             <td>{row.name}</td>
                             <td>{row.results.wins + '-' + row.results.losses + (row.results.draws ? '-' + row.results.draws : '')}</td>
+                            <td>{round(row.winPercent)}%</td>
                         </tr>
                     ))}
                 </tbody>
@@ -83,7 +90,6 @@ const ScoreSummary = ({playerId, entries, players, matches }) => {
     if (worstLoss) {
         worstLoss.opponentName = players.find(p => p.id == worstLoss.opponentId).name;
     }
-    const round = (score) => Math.round(score * 10) / 10;
     return (
         <div className='elo-summary'>
             <h2 style={{fontWeight: 'bold', fontSize: '20pt'}}>Elo Summary</h2>

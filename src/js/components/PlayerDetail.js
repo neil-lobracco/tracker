@@ -12,11 +12,13 @@ const getEntriesFor = (playerId, entries) => {
   return entries.filter(e => e.player_id == playerId);
 };
 
-const PlayerDetail = ( { match, eloEntries }) => (
-  <div className='player-detail'>
-    <EloChart playerId={match.params.playerId} entries={getEntriesFor(match.params.playerId, eloEntries)} />
-    <PlayerMatchSummary playerId={parseInt(match.params.playerId)} />
-  </div>
-);
+const PlayerDetail = ( { match, eloEntries }) => {
+  const entries = getEntriesFor(match.params.playerId, eloEntries);
+  return (
+    <div className='player-detail'>
+      <EloChart playerId={match.params.playerId} entries={entries} />
+      <PlayerMatchSummary playerId={parseInt(match.params.playerId)} entries={entries} />
+    </div>);
+};
 
 export default connect(mapStateToProps)(PlayerDetail);

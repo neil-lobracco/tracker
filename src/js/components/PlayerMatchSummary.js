@@ -31,7 +31,7 @@ const HeadToHead = ({playerId, players, matches}) => {
     const results = getResults(playerId, players, matches);
     return (
         <div className='head-to-head'>
-            <h2 style={{fontWeight: 'bold', fontSize: '20pt'}}>Head to Head results</h2>
+            <h2 style={{fontWeight: 'bold', fontSize: '20pt'}}>Head to Head</h2>
             <table className='table'>
                 <thead>
                     <tr>

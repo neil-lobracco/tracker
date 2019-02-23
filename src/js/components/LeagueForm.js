@@ -1,4 +1,4 @@
-import React, { PureComponent } from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { createLeague, loadSports } from "../actions/index";
 import FormField from "./FormField";
@@ -25,87 +25,73 @@ const initialState = {
     domain: '',
 }
 
-class LeagueForm extends PureComponent {
-  constructor() {
-    super();
-    this.state = initialState;
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentDidMount() {
-      if (!this.props.sports) {
-          this.props.loadSports();
-      }
-  }
-
-  handleChange(event) {
+const LeagueForm = ({ sports, loadSports, createLeague }) => {
+  const [state, setState] = useState(initialState);
+  useEffect(() => {
+    if (!sports) {
+      loadSports();
+    }
+  }, []);
+  const onFieldChange = (event) => {
     let val = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     if (event.target.name == 'sport_id') { val = parseInt(val); }
-    this.setState({ [event.target.name]:  val});
-  }
-
-  handleSubmit(event) {
+    setState({ ...state,  [event.target.name]:  val});
+  };
+  const handleSubmit = (event) => {
     event.preventDefault();
-    let cleaned = {...this.state, description: this.state.description || null, domain: this.state.domain || null };
-    this.props.createLeague(cleaned);
-    this.setState(initialState);
-  }
-
-  isDisabled() {
-      return !(this.state.name && this.state.sport_id);
-  }
-
-  render() {
-    const { name, description, domain, members_only, sport_id } = this.state;
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <FormField description="Name">
-          <input
-              type="text"
-              className="input is-primary"
-              name="name"
-              required='required'
-              placeholder="Enter the league name"
-              value={name}
-              onChange={this.handleChange}
-          />
-        </FormField>
-        <FormField description="Description (optional)">
-          <textarea
-              className="textarea"
-              name="description"
-              placeholder="Description of this league"
-              value={description}
-              onChange={this.handleChange}
-          />
-        </FormField>
-        <FormField description="Domain restriction (optional)">
-          <input
-              type="text"
-              className="input is-primary"
-              name="domain"
-              placeholder="Members' emails must be @ this domain"
-              value={domain}
-              onChange={this.handleChange}
-          />
-        </FormField>
-        <FormField description="Members Only">
-          <input
-              type="checkbox"
-              name="members_only"
-              checked={members_only}
-              onChange={this.handleChange}
-          />
-        </FormField>
-        <SportSelectionField sport={sport_id} onChange={this.handleChange} sports={this.props.sports} />
-        <button type="submit" disabled={this.isDisabled()} className="button is-primary">
-          Create League
-        </button>
-      </form>
-    );
-  }
-}
+    let cleaned = {...state, description: state.description || null, domain: state.domain || null };
+    createLeague(cleaned);
+    setState(initialState);
+  };
+  const submitDisabled = !(state.name && state.sport_id);
+  const { name, description, domain, members_only, sport_id } = state;
+  return (
+    <form onSubmit={handleSubmit}>
+      <FormField description="Name">
+        <input
+            type="text"
+            className="input is-primary"
+            name="name"
+            required='required'
+            placeholder="Enter the league name"
+            value={name}
+            onChange={onFieldChange}
+        />
+      </FormField>
+      <FormField description="Description (optional)">
+        <textarea
+            className="textarea"
+            name="description"
+            placeholder="Description of this league"
+            value={description}
+            onChange={onFieldChange}
+        />
+      </FormField>
+      <FormField description="Domain restriction (optional)">
+        <input
+            type="text"
+            className="input is-primary"
+            name="domain"
+            placeholder="Members' emails must be @ this domain"
+            value={domain}
+            onChange={onFieldChange}
+        />
+      </FormField>
+      <FormField description="Members Only">
+        <input
+            type="checkbox"
+            name="members_only"
+            checked={members_only}
+            onChange={onFieldChange}
+        />
+      </FormField>
+      <SportSelectionField sport={sport_id} onChange={onFieldChange} sports={sports} />
+      <button type="submit" disabled={submitDisabled} className="button is-primary">
+        Create League
+      </button>
+    </form>
+  );
+};
 
 const mapStateToProps = state => ({
   sports: state.sports,

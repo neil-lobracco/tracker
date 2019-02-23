@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import { createMatch, updateMatch, setEditingMatch } from "../actions/matches";
 import FormField from './FormField';
@@ -94,61 +94,22 @@ const getMatchScore = (match) => {
   } else return '';
 };
 
-class ConnectedForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {...initialState};
-    const m = props.currentlyEditing;
+const Form = ({ createMatch, updateMatch, cancelEditing, players, user, currentlyEditing }) => {
+  const [state, setState] = useState(() => {
+    const state = {...initialState};
+    const m = currentlyEditing;
     if (m) {
-      this.state.opponentId = m.player1_id == props.user.id ? m.player2_id : m.player1_id;
-      this.state.winner = m.player1_score == m.player2_score ? 'draw' : m.player1_score > m.player2_score ? 'player1' : 'player2';
-      this.state.comment = m.comment || '';
-      this.state.score = getMatchScore(m);
-      this.state.time = m.created_at;
+      state.opponentId = m.player1_id == user.id ? m.player2_id : m.player1_id;
+      state.winner = m.player1_score == m.player2_score ? 'draw' : m.player1_score > m.player2_score ? 'player1' : 'player2';
+      state.comment = m.comment || '';
+      state.score = getMatchScore(m);
+      state.time = m.created_at;
     }
-    this.opponentSelected = this.opponentSelected.bind(this);
-    this.setComment = this.setComment.bind(this);
-    this.setScore = this.setScore.bind(this);
-    this.setTime = this.setTime.bind(this);
-    this.winnerSelected = this.winnerSelected.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+    return state;
+  });
 
-  handleSubmit(event) {
-    event.preventDefault();
-
-    const scores = this.getScores();
-    const match = {
-      player1_id: this.props.user.id,
-      player2_id: this.state.opponentId,
-      player1_score: scores[0],
-      player2_score: scores[1],
-      comment: this.state.comment == '' ? null : this.state.comment,
-      created_at: this.state.time,
-    };
-    if (this.props.currentlyEditing) {
-      this.props.updateMatch({ ...match, id: this.props.currentlyEditing.id });
-      this.props.cancelEditing();
-    } else {
-      this.props.createMatch(match);
-    }
-    this.setState({ winner: null, comment: '', score: ''});
-  }
-
-  opponentSelected(event) {
-    this.setState({opponentId: parseInt(event.target.value)});
-  }
-
-  setComment(event) {
-    this.setState({ comment : event.target.value });
-  }
-
-  setTime(time) {
-    this.setState({ time });
-  }
-
-  getScores() {
-    const { winner, score } = this.state;
+  const getScores = () => {
+    const { winner, score } = state;
     if (winner == null) { return null; }
     if (score == '') {
       switch (winner) {
@@ -168,42 +129,63 @@ class ConnectedForm extends Component {
     return results.sort((s1,s2) => winner == 'player1' ? s2 - s1 : s1 - s2);
   }
 
-  setScore(event) {
-    this.setState({ score: event.target.value });
-  }
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const scores = getScores();
+    const match = {
+      player1_id: user.id,
+      player2_id: state.opponentId,
+      player1_score: scores[0],
+      player2_score: scores[1],
+      comment: state.comment == '' ? null : state.comment,
+      created_at: state.time,
+    };
+    if (currentlyEditing) {
+      updateMatch({ ...match, id: currentlyEditing.id });
+      cancelEditing();
+    } else {
+      createMatch(match);
+    }
+    setState({ ...state, winner: null, comment: '', score: ''});
+  };
 
-  canSubmit() {
-    return this.state.opponentId != null && this.getScores() != null;
-  }
-
-  winnerSelected(event) {
-    this.setState({winner: event.target.value});
-  }
-
-  render() {
-    const {opponentId, winner, score, comment, time } = this.state;
-    const { players, user, currentlyEditing, cancelEditing } = this.props;
-    const opponent = (opponentId && players.find(p => p.id == opponentId));
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <OpponentSelector onChange={this.opponentSelected} opponentId={opponentId} opponents={(players || []).filter(p => p.id != user.id)} />
-        <WinnerSelector winner={winner} onChange={this.winnerSelected} opponent={opponent && opponent.name} />
-        <ScoreSelector score={score} onChange={this.setScore} />
-        <CommentBox onChange={this.setComment} comment={comment} />
-        <DatetimeChooser onChange={this.setTime} time={time} />
-        <button type="submit" className="button is-primary" disabled={!this.canSubmit()}>
-          SAVE
+  const opponentSelected = (event)  => {
+    setState({...state, opponentId: parseInt(event.target.value)});
+  };
+  const setComment = (event) => {
+    setState({...state, comment : event.target.value });
+  };
+  const setTime = (time) => {
+    setState({...state,  time });
+  };
+  const setScore = (event) => {
+    setState({...state, score: event.target.value });
+  };
+  const winnerSelected = (event) => {
+    setState({...state, winner: event.target.value});
+  };
+  const canSubmit = () => state.opponentId != null && getScores() != null;
+  const {opponentId, winner, score, comment, time } = state;
+  const opponent = (opponentId && players.find(p => p.id == opponentId));
+  return (
+    <form onSubmit={handleSubmit}>
+      <OpponentSelector onChange={opponentSelected} opponentId={opponentId} opponents={(players || []).filter(p => p.id != user.id)} />
+      <WinnerSelector winner={winner} onChange={winnerSelected} opponent={opponent && opponent.name} />
+      <ScoreSelector score={score} onChange={setScore} />
+      <CommentBox onChange={setComment} comment={comment} />
+      <DatetimeChooser onChange={setTime} time={time} />
+      <button type="submit" className="button is-primary" disabled={!canSubmit()}>
+        SAVE
+      </button>
+      { currentlyEditing && 
+        <button type='button' className="button is-warning" onClick={cancelEditing}>
+          Cancel editing
         </button>
-        { currentlyEditing && 
-          <button type='button' className="button is-warning" onClick={cancelEditing}>
-            Cancel editing
-          </button>
-        }
-      </form>
-    );
-  }
-}
+      }
+    </form>
+  );
+};
 
-const Form = connect(mapStateToProps, mapDispatchToProps)(ConnectedForm);
+const MatchForm = connect(mapStateToProps, mapDispatchToProps)(Form);
 
-export default Form;
+export default MatchForm;

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import { createPlayer } from "../actions/index";
 import FormField from "./FormField";
@@ -8,55 +8,45 @@ const initialState = {
     elo : 1500,
 };
 
-class Form extends Component {
-  constructor() {
-    super();
-    this.state = initialState;
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleChange(event) {
-    this.setState({ [event.target.name]: event.target.value });
-  }
-
-  handleSubmit(event) {
+const Form = ({ createPlayer }) => {
+  const [state, setState] = useState(initialState);
+  const { name, elo } = state;
+  const handleChange = (event) => {
+    setState({ ...state, [event.target.name]: event.target.value });
+  };
+  const handleSubmit = (event) => {
     event.preventDefault();
-    this.props.createPlayer({ name: this.state.name, elo: parseInt(this.state.elo) });
-    this.setState(initialState);
-  }
-
-  render() {
-    const { name, elo } = this.state;
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <FormField description="Name">
-          <input
-            type="text"
+    createPlayer({ name, elo: parseInt(elo) });
+    setState(initialState);
+  };
+  return (
+    <form onSubmit={handleSubmit}>
+      <FormField description="Name">
+        <input
+          type="text"
+          className="input is-primary"
+          name="name"
+          placeholder="Enter the player's name"
+          value={name}
+          onChange={handleChange}
+        />
+      </FormField>
+      <FormField description="Initial Elo">
+        <input
+            type="number"
             className="input is-primary"
-            name="name"
-            placeholder="Enter the player's name"
-            value={name}
-            onChange={this.handleChange}
+            name="elo"
+            placeholder="Enter the player's starting Elo score"
+            value={elo}
+            disabled='disabled'
+            onChange={handleChange}
           />
-        </FormField>
-        <FormField description="Initial Elo">
-          <input
-              type="number"
-              className="input is-primary"
-              name="elo"
-              placeholder="Enter the player's starting Elo score"
-              value={elo}
-              disabled='disabled'
-              onChange={this.handleChange}
-            />
-        </FormField>
-        <button type="submit" className="button is-primary">
-          Create Player
-        </button>
-      </form>
-    );
-  }
+      </FormField>
+      <button type="submit" className="button is-primary">
+        Create Player
+      </button>
+    </form>
+  );
 }
 
 const mapDispatchToProps = dispatch => {
